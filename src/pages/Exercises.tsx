@@ -68,97 +68,94 @@ const Exercises = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 font-outfit flex items-center justify-center">
-        <div className="text-xl text-slate-300">Caricamento esercizi...</div>
+      <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit flex items-center justify-center">
+        <div className="text-xl text-gray-600">Caricamento esercizi...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 font-outfit">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-      
-      <div className="container mx-auto max-w-6xl relative z-10">
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
+      <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Libreria Esercizi
             </h1>
-            <p className="text-slate-300">Gestisci il tuo database di esercizi</p>
+            <p className="text-gray-600">Gestisci il tuo database di esercizi</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-semibold">
+              <Button className="bg-gray-900 hover:bg-gray-800 text-white font-semibold">
                 <Plus className="w-4 h-4 mr-2" />
                 Aggiungi Esercizio
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-600 text-white">
+            <DialogContent className="bg-white border-gray-200 text-gray-900">
               <DialogHeader>
-                <DialogTitle className="text-white font-outfit">Crea Nuovo Esercizio</DialogTitle>
+                <DialogTitle className="text-gray-900 font-outfit">Crea Nuovo Esercizio</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-300">Nome Esercizio</Label>
+                  <Label className="text-gray-700">Nome Esercizio</Label>
                   <Input
                     value={newExercise.name}
                     onChange={(e) => setNewExercise(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="es. Push-up"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-gray-50 border-gray-300 text-gray-900"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-slate-300">Gruppo Muscolare</Label>
+                  <Label className="text-gray-700">Gruppo Muscolare</Label>
                   <Select 
                     value={newExercise.muscle_group} 
                     onValueChange={(value) => setNewExercise(prev => ({ ...prev, muscle_group: value }))}
                   >
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900">
                       <SelectValue placeholder="Seleziona gruppo muscolare" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-white border-gray-200">
                       {muscleGroups.map(group => (
-                        <SelectItem key={group} value={group} className="text-white">{group}</SelectItem>
+                        <SelectItem key={group} value={group} className="text-gray-900">{group}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label className="text-slate-300">Tipo</Label>
+                  <Label className="text-gray-700">Tipo</Label>
                   <Select 
                     value={newExercise.type} 
                     onValueChange={(value) => setNewExercise(prev => ({ ...prev, type: value }))}
                   >
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900">
                       <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="bg-white border-gray-200">
                       {types.map(type => (
-                        <SelectItem key={type} value={type} className="text-white">{type}</SelectItem>
+                        <SelectItem key={type} value={type} className="text-gray-900">{type}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label className="text-slate-300">Descrizione</Label>
+                  <Label className="text-gray-700">Descrizione</Label>
                   <Textarea
                     value={newExercise.description}
                     onChange={(e) => setNewExercise(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descrizione dell'esercizio..."
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-gray-50 border-gray-300 text-gray-900"
                   />
                 </div>
 
                 <Button
                   onClick={handleCreateExercise}
                   disabled={!newExercise.name || !newExercise.muscle_group || !newExercise.type || createExerciseMutation.isPending}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500"
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white"
                 >
                   {createExerciseMutation.isPending ? "Creando..." : "Crea Esercizio"}
                 </Button>
@@ -168,42 +165,42 @@ const Exercises = () => {
         </div>
 
         {/* Search and Filters */}
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 mb-6">
+        <Card className="bg-gray-50 border-gray-200 mb-6">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <Input
                   placeholder="Cerca esercizi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400"
+                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
               {/* Muscle Group Filter */}
               <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                   <SelectValue placeholder="Tutti i gruppi muscolari" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all" className="text-white">Tutti i gruppi muscolari</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="all" className="text-gray-900">Tutti i gruppi muscolari</SelectItem>
                   {muscleGroups.map(group => (
-                    <SelectItem key={group} value={group} className="text-white">{group}</SelectItem>
+                    <SelectItem key={group} value={group} className="text-gray-900">{group}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               {/* Type Filter */}
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                   <SelectValue placeholder="Tutti i tipi" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="all" className="text-white">Tutti i tipi</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="all" className="text-gray-900">Tutti i tipi</SelectItem>
                   {types.map(type => (
-                    <SelectItem key={type} value={type} className="text-white">{type}</SelectItem>
+                    <SelectItem key={type} value={type} className="text-gray-900">{type}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -216,12 +213,12 @@ const Exercises = () => {
           {filteredExercises.map((exercise) => (
             <Card 
               key={exercise.id}
-              className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group"
+              className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 cursor-pointer group shadow-sm"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 p-2 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-gray-800 p-2 flex items-center justify-center">
                       <img 
                         src={getMuscleGroupImage(exercise.muscle_group)} 
                         alt={exercise.muscle_group}
@@ -232,16 +229,16 @@ const Exercises = () => {
                       />
                     </div>
                     <div>
-                      <CardTitle className="text-white text-lg group-hover:text-blue-300 transition-colors">
+                      <CardTitle className="text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
                         {exercise.name}
                       </CardTitle>
-                      <div className="text-sm text-slate-400">{exercise.muscle_group}</div>
+                      <div className="text-sm text-gray-500">{exercise.muscle_group}</div>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`p-1 h-auto ${exercise.is_favorite ? 'text-red-400' : 'text-slate-400'} hover:text-red-300`}
+                    className={`p-1 h-auto ${exercise.is_favorite ? 'text-red-500' : 'text-gray-400'} hover:text-red-400`}
                   >
                     <Heart className={`w-4 h-4 ${exercise.is_favorite ? 'fill-current' : ''}`} />
                   </Button>
@@ -250,14 +247,14 @@ const Exercises = () => {
               
               <CardContent className="space-y-3">
                 {exercise.description && (
-                  <p className="text-slate-300 text-sm">{exercise.description}</p>
+                  <p className="text-gray-600 text-sm">{exercise.description}</p>
                 )}
                 
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="border-blue-400/30 text-blue-300">
+                  <Badge variant="outline" className="border-gray-300 text-gray-700">
                     {exercise.muscle_group}
                   </Badge>
-                  <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-700">
                     {exercise.type}
                   </Badge>
                 </div>
@@ -269,7 +266,7 @@ const Exercises = () => {
         {/* Empty State */}
         {filteredExercises.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-slate-400 mb-4">
+            <div className="text-gray-500 mb-4">
               <Heart className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Nessun esercizio trovato</h3>
               <p>Prova ad aggiustare i filtri di ricerca</p>

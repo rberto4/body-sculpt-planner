@@ -19,69 +19,66 @@ const Index = () => {
       description: "Crea e gestisci le tue routine di allenamento",
       icon: Edit,
       path: "/routines",
-      gradient: "from-blue-500 to-cyan-500"
+      gradient: "from-gray-600 to-gray-800"
     },
     {
       title: "Esercizi",
       description: "Sfoglia e gestisci il tuo database di esercizi",
       icon: Heart,
       path: "/exercises",
-      gradient: "from-emerald-500 to-teal-500"
+      gradient: "from-gray-700 to-gray-900"
     },
     {
       title: "Calendario",
       description: "Visualizza e traccia il tuo programma di allenamento",
       icon: Calendar,
       path: "/calendar",
-      gradient: "from-purple-500 to-pink-500"
+      gradient: "from-gray-600 to-gray-800"
     },
     {
       title: "Allenamento Attivo",
       description: "Inizia la tua sessione di allenamento",
       icon: Timer,
       path: "/training",
-      gradient: "from-orange-500 to-red-500"
+      gradient: "from-gray-700 to-gray-900"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white font-outfit">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-      
-      <div className="container mx-auto px-4 py-8 relative z-10">
+    <div className="min-h-screen bg-white text-gray-900 font-outfit">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-4 text-gray-900">
             Bodyweight
           </h1>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Il tuo compagno completo per gestire routine, tracciare progressi e raggiungere i tuoi obiettivi di fitness
           </p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
+          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
             <div className="flex items-center space-x-3 mb-2">
-              <Edit className="w-5 h-5 text-blue-400" />
-              <span className="text-slate-300">Routine Attive</span>
+              <Edit className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-700">Routine Attive</span>
             </div>
-            <div className="text-2xl font-bold text-white">{activeRoutines}</div>
+            <div className="text-2xl font-bold text-gray-900">{activeRoutines}</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
+          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
             <div className="flex items-center space-x-3 mb-2">
-              <TrendingUp className="w-5 h-5 text-emerald-400" />
-              <span className="text-slate-300">Workout Completati</span>
+              <TrendingUp className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-700">Workout Completati</span>
             </div>
-            <div className="text-2xl font-bold text-white">{completedWorkouts}</div>
+            <div className="text-2xl font-bold text-gray-900">{completedWorkouts}</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
+          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
             <div className="flex items-center space-x-3 mb-2">
-              <Award className="w-5 h-5 text-purple-400" />
-              <span className="text-slate-300">Totale Routine</span>
+              <Award className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-700">Totale Routine</span>
             </div>
-            <div className="text-2xl font-bold text-white">{routines.length}</div>
+            <div className="text-2xl font-bold text-gray-900">{routines.length}</div>
           </div>
         </div>
 
@@ -90,18 +87,18 @@ const Index = () => {
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 cursor-pointer group"
+              className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 hover:scale-105 cursor-pointer group shadow-sm"
               onClick={() => navigate(feature.path)}
             >
               <CardContent className="p-6">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-slate-300 mb-4">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">{feature.title}</h3>
+                <p className="text-gray-600 mb-4">{feature.description}</p>
                 <Button 
                   variant="outline" 
-                  className="w-full border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                 >
                   Apri {feature.title}
                 </Button>

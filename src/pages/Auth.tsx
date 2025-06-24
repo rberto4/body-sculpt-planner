@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, Dumbbell } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -65,18 +65,24 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 font-outfit">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-lime-400 mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+            <Dumbbell className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
             Bodyweight
           </h1>
-          <p className="text-gray-300">Il tuo compagno di allenamento</p>
+          <p className="text-slate-400">Il tuo compagno di allenamento</p>
         </div>
 
-        <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
+        <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+            <CardTitle className="text-2xl text-center text-white font-outfit">
               {isLogin ? "Accedi" : "Registrati"}
             </CardTitle>
           </CardHeader>
@@ -84,18 +90,18 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-gray-300">
+                  <Label htmlFor="fullName" className="text-slate-300">
                     Nome completo
                   </Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <User className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                     <Input
                       id="fullName"
                       type="text"
                       placeholder="Il tuo nome completo"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-lime-500"
+                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400"
                       required={!isLogin}
                     />
                   </div>
@@ -103,43 +109,43 @@ const Auth = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">
+                <Label htmlFor="email" className="text-slate-300">
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="la-tua-email@esempio.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-lime-500"
+                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-300">
+                <Label htmlFor="password" className="text-slate-300">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="La tua password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-lime-500"
+                    className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0 text-gray-400 hover:text-gray-300"
+                    className="absolute right-1 top-1 h-8 w-8 p-0 text-slate-400 hover:text-slate-300"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -149,9 +155,8 @@ const Auth = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-lime-500 hover:bg-lime-400 text-black font-semibold py-2 h-11"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-semibold py-2 h-11"
                 disabled={loading}
-                style={{ fontFamily: 'Outfit, sans-serif' }}
               >
                 {loading ? "Caricamento..." : (isLogin ? "Accedi" : "Registrati")}
               </Button>
@@ -161,8 +166,7 @@ const Auth = () => {
               <Button
                 variant="ghost"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-gray-300 hover:text-lime-400"
-                style={{ fontFamily: 'Outfit, sans-serif' }}
+                className="text-slate-300 hover:text-blue-400"
               >
                 {isLogin 
                   ? "Non hai un account? Registrati" 

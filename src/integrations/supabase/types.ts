@@ -9,7 +9,279 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      exercises: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_favorite: boolean | null
+          muscle_group: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          muscle_group: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          muscle_group?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      routine_exercises: {
+        Row: {
+          created_at: string
+          duration: number | null
+          exercise_id: string
+          id: string
+          is_superset: boolean | null
+          notes: string | null
+          order_index: number
+          reps: number | null
+          rest_time: number | null
+          routine_id: string
+          sets: number
+          superset_group: number | null
+          tracking_type: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          exercise_id: string
+          id?: string
+          is_superset?: boolean | null
+          notes?: string | null
+          order_index?: number
+          reps?: number | null
+          rest_time?: number | null
+          routine_id: string
+          sets?: number
+          superset_group?: number | null
+          tracking_type?: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          exercise_id?: string
+          id?: string
+          is_superset?: boolean | null
+          notes?: string | null
+          order_index?: number
+          reps?: number | null
+          rest_time?: number | null
+          routine_id?: string
+          sets?: number
+          superset_group?: number | null
+          tracking_type?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routine_exercises_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routines: {
+        Row: {
+          assigned_days: string[] | null
+          created_at: string
+          created_by: string
+          id: string
+          is_assigned: boolean | null
+          name: string
+          type: string
+          updated_at: string
+          volume: string | null
+        }
+        Insert: {
+          assigned_days?: string[] | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_assigned?: boolean | null
+          name: string
+          type: string
+          updated_at?: string
+          volume?: string | null
+        }
+        Update: {
+          assigned_days?: string[] | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_assigned?: boolean | null
+          name?: string
+          type?: string
+          updated_at?: string
+          volume?: string | null
+        }
+        Relationships: []
+      }
+      workout_exercises: {
+        Row: {
+          created_at: string
+          duration_completed: number | null
+          exercise_id: string
+          id: string
+          is_completed: boolean | null
+          is_skipped: boolean | null
+          notes: string | null
+          reps_completed: number[] | null
+          routine_exercise_id: string
+          sets_completed: number | null
+          weight_used: number[] | null
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_completed?: number | null
+          exercise_id: string
+          id?: string
+          is_completed?: boolean | null
+          is_skipped?: boolean | null
+          notes?: string | null
+          reps_completed?: number[] | null
+          routine_exercise_id: string
+          sets_completed?: number | null
+          weight_used?: number[] | null
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_completed?: number | null
+          exercise_id?: string
+          id?: string
+          is_completed?: boolean | null
+          is_skipped?: boolean | null
+          notes?: string | null
+          reps_completed?: number[] | null
+          routine_exercise_id?: string
+          sets_completed?: number | null
+          weight_used?: number[] | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_routine_exercise_id_fkey"
+            columns: ["routine_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "routine_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          notes: string | null
+          routine_id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          routine_id: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          routine_id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -8,23 +8,29 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCreateRoutine } from "@/hooks/useSupabaseQuery";
 
 const CreateRoutine = () => {
   const navigate = useNavigate();
+  const createRoutineMutation = useCreateRoutine();
+  
   const [routineName, setRoutineName] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [customType, setCustomType] = useState("");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [volume, setVolume] = useState("Medium");
 
   const predefinedTypes = [
-    "Arms", "Legs", "Chest", "Back", "Push", "Pull", 
-    "Cardio", "Full Body", "Core", "Shoulders"
+    "Braccia", "Gambe", "Petto", "Schiena", "Push", "Pull", 
+    "Cardio", "Full Body", "Core", "Spalle"
   ];
 
   const daysOfWeek = [
-    "Monday", "Tuesday", "Wednesday", "Thursday", 
-    "Friday", "Saturday", "Sunday"
+    "Lunedì", "Martedì", "Mercoledì", "Giovedì", 
+    "Venerdì", "Sabato", "Domenica"
   ];
+
+  const volumes = ["Low", "Medium", "High"];
 
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
@@ -44,13 +50,16 @@ const CreateRoutine = () => {
     );
   };
 
-  const handleSubmit = () => {
-    // Here you would typically save the routine
-    console.log({
+  const handleSubmit = async () => {
+    const routineData = {
       name: routineName,
       type: selectedType || customType,
-      assignedDays: selectedDays
-    });
+      assigned_days: selectedDays,
+      is_assigned: selectedDays.length > 0,
+      volume
+    };
+
+    await createRoutineMutation.mutateAsync(routineData);
     navigate("/routines");
   };
 
@@ -65,11 +74,13 @@ const CreateRoutine = () => {
             className="mr-4 text-gray-300 hover:text-lime-400"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Indietro
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-lime-400">Create New Routine</h1>
-            <p className="text-gray-300 mt-1">Set up your training routine</p>
+            <h1 className="text-3xl font-bold text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              Crea Nuova Routine
+            </h1>
+            <p className="text-gray-300 mt-1">Configura la tua routine di allenamento</p>
           </div>
         </div>
 
@@ -77,17 +88,19 @@ const CreateRoutine = () => {
           {/* Routine Name */}
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lime-400">Routine Name</CardTitle>
+              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                Nome della Routine
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Label htmlFor="routineName" className="text-gray-300">
-                Enter a name for your routine
+                Inserisci un nome per la tua routine
               </Label>
               <Input
                 id="routineName"
                 value={routineName}
                 onChange={(e) => setRoutineName(e.target.value)}
-                placeholder="e.g., Upper Body Power"
+                placeholder="es. Upper Body Power"
                 className="mt-2 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
               />
             </CardContent>
@@ -96,11 +109,13 @@ const CreateRoutine = () => {
           {/* Routine Type */}
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lime-400">Routine Type</CardTitle>
+              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                Tipo di Routine
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Label className="text-gray-300">
-                Choose a predefined type or create a custom one
+                Scegli un tipo predefinito o creane uno personalizzato
               </Label>
               
               {/* Predefined Types */}
@@ -124,15 +139,42 @@ const CreateRoutine = () => {
               {/* Custom Type */}
               <div className="mt-4">
                 <Label htmlFor="customType" className="text-gray-300">
-                  Or create a custom type
+                  Oppure crea un tipo personalizzato
                 </Label>
                 <Input
                   id="customType"
                   value={customType}
                   onChange={(e) => handleCustomTypeChange(e.target.value)}
-                  placeholder="Enter custom type"
+                  placeholder="Inserisci tipo personalizzato"
                   className="mt-2 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Volume */}
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                Volume di Allenamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {volumes.map((vol) => (
+                  <Badge
+                    key={vol}
+                    variant={volume === vol ? "default" : "outline"}
+                    className={`cursor-pointer transition-colors ${
+                      volume === vol 
+                        ? "bg-lime-500 text-black hover:bg-lime-400" 
+                        : "border-gray-500 text-gray-300 hover:border-lime-400 hover:text-lime-400"
+                    }`}
+                    onClick={() => setVolume(vol)}
+                  >
+                    {vol}
+                  </Badge>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -140,11 +182,13 @@ const CreateRoutine = () => {
           {/* Assigned Days */}
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lime-400">Assigned Days</CardTitle>
+              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                Giorni Assegnati
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Label className="text-gray-300 mb-4 block">
-                Select the days when this routine will be active
+                Seleziona i giorni in cui questa routine sarà attiva
               </Label>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -168,7 +212,7 @@ const CreateRoutine = () => {
 
               {selectedDays.length > 0 && (
                 <div className="mt-4">
-                  <Label className="text-gray-300 mb-2 block">Selected Days:</Label>
+                  <Label className="text-gray-300 mb-2 block">Giorni Selezionati:</Label>
                   <div className="flex flex-wrap gap-2">
                     {selectedDays.map((day) => (
                       <Badge
@@ -199,15 +243,22 @@ const CreateRoutine = () => {
               onClick={() => navigate("/routines")}
               className="flex-1 border-gray-600 text-gray-300 hover:border-gray-500"
             >
-              Cancel
+              Annulla
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!routineName || (!selectedType && !customType)}
+              disabled={!routineName || (!selectedType && !customType) || createRoutineMutation.isPending}
               className="flex-1 bg-lime-500 hover:bg-lime-400 text-black font-semibold disabled:opacity-50"
+              style={{ fontFamily: 'Outfit, sans-serif' }}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Routine
+              {createRoutineMutation.isPending ? (
+                "Creazione..."
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crea Routine
+                </>
+              )}
             </Button>
           </div>
         </div>

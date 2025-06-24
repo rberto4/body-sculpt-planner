@@ -16,8 +16,8 @@ const Exercises = () => {
   const createExerciseMutation = useCreateExercise();
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // New exercise form state
@@ -33,8 +33,8 @@ const Exercises = () => {
 
   const filteredExercises = exercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscle_group === selectedMuscleGroup;
-    const matchesType = !selectedType || exercise.type === selectedType;
+    const matchesMuscleGroup = selectedMuscleGroup === "all" || exercise.muscle_group === selectedMuscleGroup;
+    const matchesType = selectedType === "all" || exercise.type === selectedType;
     return matchesSearch && matchesMuscleGroup && matchesType;
   });
 
@@ -188,7 +188,7 @@ const Exercises = () => {
                   <SelectValue placeholder="Tutti i gruppi muscolari" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="" className="text-white">Tutti i gruppi muscolari</SelectItem>
+                  <SelectItem value="all" className="text-white">Tutti i gruppi muscolari</SelectItem>
                   {muscleGroups.map(group => (
                     <SelectItem key={group} value={group} className="text-white">{group}</SelectItem>
                   ))}
@@ -201,7 +201,7 @@ const Exercises = () => {
                   <SelectValue placeholder="Tutti i tipi" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="" className="text-white">Tutti i tipi</SelectItem>
+                  <SelectItem value="all" className="text-white">Tutti i tipi</SelectItem>
                   {types.map(type => (
                     <SelectItem key={type} value={type} className="text-white">{type}</SelectItem>
                   ))}

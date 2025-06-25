@@ -144,11 +144,12 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
               <Label className="text-gray-700 dark:text-gray-300">Set</Label>
               <Input
                 type="number"
-                value={sets}
-                onChange={(e) => setSets(Number(e.target.value))}
+                value={sets || ""}
+                onChange={(e) => setSets(Number(e.target.value) || 0)}
                 className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                 min="1"
                 max="10"
+                placeholder="3"
               />
             </div>
             
@@ -158,11 +159,12 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                   <Label className="text-gray-700 dark:text-gray-300">Ripetizioni</Label>
                   <Input
                     type="number"
-                    value={reps}
-                    onChange={(e) => setReps(Number(e.target.value))}
+                    value={reps || ""}
+                    onChange={(e) => setReps(Number(e.target.value) || 0)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
                     max="100"
+                    placeholder="12"
                   />
                 </div>
                 <div>
@@ -170,11 +172,12 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                   <div className="flex space-x-2">
                     <Input
                       type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(Number(e.target.value))}
+                      value={weight || ""}
+                      onChange={(e) => setWeight(Number(e.target.value) || 0)}
                       className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                       min="0"
                       step="0.5"
+                      placeholder="0"
                     />
                     <Select value={weightUnit} onValueChange={setWeightUnit}>
                       <SelectTrigger className="w-20 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -196,10 +199,11 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                 <div className="flex space-x-2">
                   <Input
                     type="number"
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
+                    value={duration || ""}
+                    onChange={(e) => setDuration(Number(e.target.value) || 0)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
+                    placeholder="30"
                   />
                   <Select value={durationUnit} onValueChange={setDurationUnit}>
                     <SelectTrigger className="w-24 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -220,10 +224,11 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                 <div className="flex space-x-2">
                   <Input
                     type="number"
-                    value={distance}
-                    onChange={(e) => setDistance(Number(e.target.value))}
+                    value={distance || ""}
+                    onChange={(e) => setDistance(Number(e.target.value) || 0)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
+                    placeholder="100"
                   />
                   <Select value={distanceUnit} onValueChange={setDistanceUnit}>
                     <SelectTrigger className="w-20 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
@@ -244,40 +249,51 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
             <Label className="text-gray-700 dark:text-gray-300">Tempo di Riposo (secondi)</Label>
             <Input
               type="number"
-              value={restTime}
-              onChange={(e) => setRestTime(Number(e.target.value))}
+              value={restTime || ""}
+              onChange={(e) => setRestTime(Number(e.target.value) || 0)}
               className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
               min="0"
               max="600"
+              placeholder="60"
             />
           </div>
 
-          {/* Advanced Settings */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-gray-700 dark:text-gray-300">RPE (1-10)</Label>
-              <Input
-                type="number"
-                value={rpe || ""}
-                onChange={(e) => setRpe(e.target.value ? Number(e.target.value) : undefined)}
-                className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
-                min="1"
-                max="10"
-                placeholder="Opzionale"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="mav" checked={mav} onCheckedChange={setMav} />
-                <Label htmlFor="mav" className="text-gray-700 dark:text-gray-300">MAV</Label>
+          {/* Advanced Settings - Only show for sets_reps */}
+          {trackingType === "sets_reps" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-700 dark:text-gray-300">RPE (1-10)</Label>
+                <Input
+                  type="number"
+                  value={rpe || ""}
+                  onChange={(e) => setRpe(e.target.value ? Number(e.target.value) : undefined)}
+                  className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                  min="1"
+                  max="10"
+                  placeholder="Opzionale"
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="warmup" checked={warmup} onCheckedChange={setWarmup} />
-                <Label htmlFor="warmup" className="text-gray-700 dark:text-gray-300">Riscaldamento</Label>
+              
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="mav" 
+                    checked={mav} 
+                    onCheckedChange={(checked) => setMav(checked === true)} 
+                  />
+                  <Label htmlFor="mav" className="text-gray-700 dark:text-gray-300">MAV</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="warmup" 
+                    checked={warmup} 
+                    onCheckedChange={(checked) => setWarmup(checked === true)} 
+                  />
+                  <Label htmlFor="warmup" className="text-gray-700 dark:text-gray-300">Riscaldamento</Label>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Notes */}
           <div>

@@ -23,17 +23,17 @@ const Routines = () => {
   const getEstimatedTime = (routine: any) => {
     if (!routine.routine_exercises?.length) return 30;
     const totalTime = routine.routine_exercises.reduce((acc: number, re: any) => {
-      const exerciseTime = re.duration || (re.sets * (re.reps || 10) * 2); // 2 secondi per rep
+      const exerciseTime = re.duration || (re.sets * (re.reps || 10) * 2);
       const restTime = re.rest_time || 60;
       return acc + exerciseTime + restTime;
     }, 0);
-    return Math.round(totalTime / 60); // Converti in minuti
+    return Math.round(totalTime / 60);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-4 flex items-center justify-center">
-        <div className="text-lime-400 text-xl font-semibold" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      <div className="min-h-screen bg-white text-gray-900 p-4 flex items-center justify-center font-outfit">
+        <div className="text-xl text-gray-600">
           Caricamento routine...
         </div>
       </div>
@@ -41,20 +41,19 @@ const Routines = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-lime-400 mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Le Tue Routine
             </h1>
-            <p className="text-gray-300">Gestisci i tuoi programmi di allenamento</p>
+            <p className="text-gray-600">Gestisci i tuoi programmi di allenamento</p>
           </div>
           <Button 
             onClick={() => navigate("/routines/create")}
-            className="bg-lime-500 hover:bg-lime-400 text-black font-semibold"
-            style={{ fontFamily: 'Outfit, sans-serif' }}
+            className="bg-gray-900 hover:bg-gray-800 text-white font-semibold"
           >
             <Plus className="w-4 h-4 mr-2" />
             Crea Routine
@@ -66,12 +65,12 @@ const Routines = () => {
           {routines.map((routine: any) => (
             <Card 
               key={routine.id}
-              className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-all duration-300 cursor-pointer group"
+              className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 cursor-pointer group shadow-sm"
               onClick={() => navigate(`/routines/${routine.id}`)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-lime-400 text-lg group-hover:text-lime-300 transition-colors" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                  <CardTitle className="text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
                     {routine.name}
                   </CardTitle>
                   <div className="flex space-x-1">
@@ -82,7 +81,7 @@ const Routines = () => {
                         e.stopPropagation();
                         navigate(`/routines/${routine.id}/edit`);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto text-gray-600 hover:text-gray-900"
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
@@ -93,13 +92,13 @@ const Routines = () => {
                         e.stopPropagation();
                         // TODO: Implement delete functionality
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto text-red-400 hover:text-red-300"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto text-red-500 hover:text-red-700"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
-                <Badge variant="outline" className="w-fit border-lime-500/30 text-lime-400">
+                <Badge variant="outline" className="w-fit border-gray-300 text-gray-700">
                   {routine.type}
                 </Badge>
               </CardHeader>
@@ -107,8 +106,8 @@ const Routines = () => {
               <CardContent className="space-y-4">
                 {/* Assignment Status */}
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${routine.is_assigned ? 'bg-lime-500' : 'bg-gray-500'}`} />
-                  <span className="text-sm text-gray-300">
+                  <div className={`w-2 h-2 rounded-full ${routine.is_assigned ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className="text-sm text-gray-600">
                     {routine.is_assigned ? 'Assegnata' : 'Non Assegnata'}
                   </span>
                 </div>
@@ -116,10 +115,10 @@ const Routines = () => {
                 {/* Assigned Days */}
                 {routine.assigned_days?.length > 0 && (
                   <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4 text-gray-500" />
                     <div className="flex flex-wrap gap-1">
                       {routine.assigned_days.map((day: string) => (
-                        <Badge key={day} variant="secondary" className="text-xs bg-gray-700 text-gray-300">
+                        <Badge key={day} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
                           {day.slice(0, 3)}
                         </Badge>
                       ))}
@@ -128,7 +127,7 @@ const Routines = () => {
                 )}
 
                 {/* Exercise Count & Time */}
-                <div className="flex items-center justify-between text-sm text-gray-300">
+                <div className="flex items-center justify-between text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <span>{routine.routine_exercises?.length || 0} esercizi</span>
                   </div>
@@ -140,10 +139,10 @@ const Routines = () => {
 
                 {/* Volume Indicator */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Volume di Allenamento</span>
+                  <span className="text-sm text-gray-500">Volume di Allenamento</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${getVolumeColor(routine.volume)}`} />
-                    <span className="text-sm text-gray-300">{routine.volume}</span>
+                    <span className="text-sm text-gray-700">{routine.volume}</span>
                   </div>
                 </div>
               </CardContent>
@@ -154,17 +153,16 @@ const Routines = () => {
         {/* Empty State */}
         {routines.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-gray-500 mb-4">
               <Edit className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <h3 className="text-xl font-semibold mb-2">
                 Nessuna routine ancora
               </h3>
               <p>Crea la tua prima routine di allenamento per iniziare</p>
             </div>
             <Button 
               onClick={() => navigate("/routines/create")}
-              className="bg-lime-500 hover:bg-lime-400 text-black font-semibold mt-4"
-              style={{ fontFamily: 'Outfit, sans-serif' }}
+              className="bg-gray-900 hover:bg-gray-800 text-white font-semibold mt-4"
             >
               <Plus className="w-4 h-4 mr-2" />
               Crea la Tua Prima Routine

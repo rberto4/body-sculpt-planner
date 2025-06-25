@@ -1,10 +1,9 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { Navigation } from "@/components/Navigation";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -13,25 +12,25 @@ import Exercises from "./pages/Exercises";
 import Calendar from "./pages/Calendar";
 import Training from "./pages/Training";
 import Progress from "./pages/Progress";
-import RoutineDetail from "./pages/RoutineDetail";
+import Profile from "./pages/Profile";
 import CreateRoutine from "./pages/CreateRoutine";
+import RoutineDetail from "./pages/RoutineDetail";
 import NotFound from "./pages/NotFound";
-import { Navigation } from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <BrowserRouter>
+        <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <div className="min-h-screen bg-gray-900">
+            <Route 
+              path="/*" 
+              element={
+                <ProtectedRoute>
                   <Navigation />
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -42,15 +41,16 @@ const App = () => (
                     <Route path="/calendar" element={<Calendar />} />
                     <Route path="/training" element={<Training />} />
                     <Route path="/progress" element={<Progress />} />
+                    <Route path="/profile" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </div>
-              </ProtectedRoute>
-            } />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+        </div>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, Search, Plus } from "lucide-react";
+import { Heart, Search, Plus, User, Zap, Activity, Target, Shield, Dumbbell } from "lucide-react";
 import { useExercises, useCreateExercise } from "@/hooks/useSupabaseQuery";
 
 const Exercises = () => {
@@ -50,20 +50,20 @@ const Exercises = () => {
     }
   };
 
-  const getMuscleGroupImage = (muscleGroup: string) => {
-    const imageMap: { [key: string]: string } = {
-      'Chest': '/src/assets/muscle_images/chest.png',
-      'Back': '/src/assets/muscle_images/back.png',
-      'Legs': '/src/assets/muscle_images/legs.png',
-      'Core': '/src/assets/muscle_images/core.png',
-      'Shoulders': '/src/assets/muscle_images/shoulders.png',
-      'Triceps': '/src/assets/muscle_images/triceps.png',
-      'Biceps': '/src/assets/muscle_images/biceps.png',
-      'Glutes': '/src/assets/muscle_images/glutes.png',
-      'Calfs': '/src/assets/muscle_images/calfs.png',
-      'Hamstrings': '/src/assets/muscle_images/hamstrings.png'
+  const getMuscleGroupIcon = (muscleGroup: string) => {
+    const iconMap: { [key: string]: any } = {
+      'Chest': User,
+      'Back': Shield,
+      'Legs': Activity,
+      'Core': Target,
+      'Shoulders': Dumbbell,
+      'Triceps': Zap,
+      'Biceps': Zap,
+      'Glutes': Activity,
+      'Calfs': Activity,
+      'Hamstrings': Activity
     };
-    return imageMap[muscleGroup] || '/src/assets/muscle_images/core.png';
+    return iconMap[muscleGroup] || Target;
   };
 
   if (isLoading) {
@@ -210,57 +210,54 @@ const Exercises = () => {
 
         {/* Exercise Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredExercises.map((exercise) => (
-            <Card 
-              key={exercise.id}
-              className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 cursor-pointer group shadow-sm"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-lg bg-gray-800 p-2 flex items-center justify-center">
-                      <img 
-                        src={getMuscleGroupImage(exercise.muscle_group)} 
-                        alt={exercise.muscle_group}
-                        className="w-full h-full object-contain filter brightness-0 invert"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
+          {filteredExercises.map((exercise) => {
+            const IconComponent = getMuscleGroupIcon(exercise.muscle_group);
+            
+            return (
+              <Card 
+                key={exercise.id}
+                className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 cursor-pointer group shadow-sm"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 rounded-lg bg-gray-800 p-2 flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
+                          {exercise.name}
+                        </CardTitle>
+                        <div className="text-sm text-gray-500">{exercise.muscle_group}</div>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
-                        {exercise.name}
-                      </CardTitle>
-                      <div className="text-sm text-gray-500">{exercise.muscle_group}</div>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`p-1 h-auto ${exercise.is_favorite ? 'text-red-500' : 'text-gray-400'} hover:text-red-400`}
+                    >
+                      <Heart className={`w-4 h-4 ${exercise.is_favorite ? 'fill-current' : ''}`} />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`p-1 h-auto ${exercise.is_favorite ? 'text-red-500' : 'text-gray-400'} hover:text-red-400`}
-                  >
-                    <Heart className={`w-4 h-4 ${exercise.is_favorite ? 'fill-current' : ''}`} />
-                  </Button>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                {exercise.description && (
-                  <p className="text-gray-600 text-sm">{exercise.description}</p>
-                )}
+                </CardHeader>
                 
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="border-gray-300 text-gray-700">
-                    {exercise.muscle_group}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                    {exercise.type}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="space-y-3">
+                  {exercise.description && (
+                    <p className="text-gray-600 text-sm">{exercise.description}</p>
+                  )}
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="border-gray-300 text-gray-700">
+                      {exercise.muscle_group}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                      {exercise.type}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Empty State */}

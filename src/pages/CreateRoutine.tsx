@@ -64,36 +64,36 @@ const CreateRoutine = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
       <div className="container mx-auto max-w-2xl">
         {/* Header */}
         <div className="flex items-center mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate("/routines")}
-            className="mr-4 text-gray-300 hover:text-lime-400"
+            className="mr-4 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Indietro
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+            <h1 className="text-3xl font-bold text-gray-900">
               Crea Nuova Routine
             </h1>
-            <p className="text-gray-300 mt-1">Configura la tua routine di allenamento</p>
+            <p className="text-gray-600 mt-1">Configura la tua routine di allenamento</p>
           </div>
         </div>
 
         <div className="space-y-6">
           {/* Routine Name */}
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <CardTitle className="text-gray-900">
                 Nome della Routine
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label htmlFor="routineName" className="text-gray-300">
+              <Label htmlFor="routineName" className="text-gray-700">
                 Inserisci un nome per la tua routine
               </Label>
               <Input
@@ -101,20 +101,20 @@ const CreateRoutine = () => {
                 value={routineName}
                 onChange={(e) => setRoutineName(e.target.value)}
                 placeholder="es. Upper Body Power"
-                className="mt-2 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                className="mt-2 bg-white border-gray-300 text-gray-900 placeholder-gray-400"
               />
             </CardContent>
           </Card>
 
           {/* Routine Type */}
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <CardTitle className="text-gray-900">
                 Tipo di Routine
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Label className="text-gray-300">
+              <Label className="text-gray-700">
                 Scegli un tipo predefinito o creane uno personalizzato
               </Label>
               
@@ -126,8 +126,8 @@ const CreateRoutine = () => {
                     variant={selectedType === type ? "default" : "outline"}
                     className={`cursor-pointer transition-colors ${
                       selectedType === type 
-                        ? "bg-lime-500 text-black hover:bg-lime-400" 
-                        : "border-gray-500 text-gray-300 hover:border-lime-400 hover:text-lime-400"
+                        ? "bg-gray-900 text-white hover:bg-gray-800" 
+                        : "border-gray-400 text-gray-700 hover:border-gray-600 hover:text-gray-900"
                     }`}
                     onClick={() => handleTypeSelect(type)}
                   >
@@ -138,7 +138,7 @@ const CreateRoutine = () => {
 
               {/* Custom Type */}
               <div className="mt-4">
-                <Label htmlFor="customType" className="text-gray-300">
+                <Label htmlFor="customType" className="text-gray-700">
                   Oppure crea un tipo personalizzato
                 </Label>
                 <Input
@@ -146,16 +146,16 @@ const CreateRoutine = () => {
                   value={customType}
                   onChange={(e) => handleCustomTypeChange(e.target.value)}
                   placeholder="Inserisci tipo personalizzato"
-                  className="mt-2 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  className="mt-2 bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* Volume */}
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <CardTitle className="text-gray-900">
                 Volume di Allenamento
               </CardTitle>
             </CardHeader>
@@ -167,8 +167,8 @@ const CreateRoutine = () => {
                     variant={volume === vol ? "default" : "outline"}
                     className={`cursor-pointer transition-colors ${
                       volume === vol 
-                        ? "bg-lime-500 text-black hover:bg-lime-400" 
-                        : "border-gray-500 text-gray-300 hover:border-lime-400 hover:text-lime-400"
+                        ? "bg-gray-900 text-white hover:bg-gray-800" 
+                        : "border-gray-400 text-gray-700 hover:border-gray-600 hover:text-gray-900"
                     }`}
                     onClick={() => setVolume(vol)}
                   >
@@ -180,14 +180,14 @@ const CreateRoutine = () => {
           </Card>
 
           {/* Assigned Days */}
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lime-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <CardTitle className="text-gray-900">
                 Giorni Assegnati
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label className="text-gray-300 mb-4 block">
+              <Label className="text-gray-700 mb-4 block">
                 Seleziona i giorni in cui questa routine sarà attiva
               </Label>
               
@@ -195,15 +195,15 @@ const CreateRoutine = () => {
                 {daysOfWeek.map((day) => (
                   <div
                     key={day}
-                    className="flex items-center space-x-2 p-3 rounded-lg bg-gray-700/50 hover:bg-gray-700 transition-colors cursor-pointer"
+                    className="flex items-center space-x-2 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                     onClick={() => handleDayToggle(day)}
                   >
                     <Checkbox
                       checked={selectedDays.includes(day)}
                       onChange={() => handleDayToggle(day)}
-                      className="border-gray-500"
+                      className="border-gray-400"
                     />
-                    <Label className="text-gray-300 cursor-pointer">
+                    <Label className="text-gray-700 cursor-pointer">
                       {day}
                     </Label>
                   </div>
@@ -212,13 +212,13 @@ const CreateRoutine = () => {
 
               {selectedDays.length > 0 && (
                 <div className="mt-4">
-                  <Label className="text-gray-300 mb-2 block">Giorni Selezionati:</Label>
+                  <Label className="text-gray-700 mb-2 block">Giorni Selezionati:</Label>
                   <div className="flex flex-wrap gap-2">
                     {selectedDays.map((day) => (
                       <Badge
                         key={day}
                         variant="default"
-                        className="bg-lime-500 text-black"
+                        className="bg-gray-900 text-white"
                       >
                         {day}
                         <X
@@ -241,15 +241,14 @@ const CreateRoutine = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/routines")}
-              className="flex-1 border-gray-600 text-gray-300 hover:border-gray-500"
+              className="flex-1 border-gray-300 text-gray-700 hover:border-gray-400"
             >
               Annulla
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={!routineName || (!selectedType && !customType) || createRoutineMutation.isPending}
-              className="flex-1 bg-lime-500 hover:bg-lime-400 text-black font-semibold disabled:opacity-50"
-              style={{ fontFamily: 'Outfit, sans-serif' }}
+              className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold disabled:opacity-50"
             >
               {createRoutineMutation.isPending ? (
                 "Creazione..."

@@ -79,24 +79,21 @@ const Calendar = () => {
   const days = getDaysInMonth(currentDate);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 font-outfit">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-      
-      <div className="container mx-auto max-w-4xl relative z-10">
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
+      <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Calendario Allenamenti
           </h1>
-          <p className="text-slate-300">Traccia il tuo programma di allenamento</p>
+          <p className="text-gray-600">Traccia il tuo programma di allenamento</p>
         </div>
 
         {/* Calendar */}
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-white text-xl font-outfit">
+              <CardTitle className="text-gray-900 text-xl font-outfit">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </CardTitle>
               <div className="flex space-x-2">
@@ -104,7 +101,7 @@ const Calendar = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigateMonth('prev')}
-                  className="border-white/30 text-white hover:bg-white/10"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -112,7 +109,7 @@ const Calendar = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigateMonth('next')}
-                  className="border-white/30 text-white hover:bg-white/10"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -124,7 +121,7 @@ const Calendar = () => {
             {/* Days of week header */}
             <div className="grid grid-cols-7 gap-2 mb-4">
               {daysOfWeek.map(day => (
-                <div key={day} className="text-center font-semibold text-slate-300 py-2">
+                <div key={day} className="text-center font-semibold text-gray-600 py-2">
                   {day}
                 </div>
               ))}
@@ -148,18 +145,18 @@ const Calendar = () => {
                 return (
                   <div
                     key={day}
-                    className={`h-24 p-2 border border-white/20 rounded-lg hover:bg-white/10 transition-colors cursor-pointer ${
-                      isToday ? 'bg-blue-500/20 border-blue-500/50' : 'bg-white/5'
+                    className={`h-24 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+                      isToday ? 'bg-gray-900 text-white border-gray-900' : 'bg-white'
                     }`}
                   >
-                    <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-400' : 'text-white'}`}>
+                    <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-white' : 'text-gray-900'}`}>
                       {day}
                     </div>
                     <div className="space-y-1">
                       {completedWorkout && (
                         <Badge
                           variant="default"
-                          className="text-xs px-1 py-0 h-4 bg-emerald-500 text-black"
+                          className="text-xs px-1 py-0 h-4 bg-green-500 text-white"
                         >
                           ✓ Completato
                         </Badge>
@@ -168,7 +165,9 @@ const Calendar = () => {
                         <div key={idx} className="group">
                           <Badge
                             variant="outline"
-                            className="text-xs px-1 py-0 h-4 border-blue-400/50 text-blue-300 cursor-pointer hover:bg-blue-500/20"
+                            className={`text-xs px-1 py-0 h-4 cursor-pointer hover:bg-gray-100 ${
+                              isToday ? 'border-white text-white hover:bg-white hover:text-gray-900' : 'border-gray-400 text-gray-700'
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation();
                               startRoutine(routine);
@@ -180,7 +179,7 @@ const Calendar = () => {
                         </div>
                       ))}
                       {assignedRoutines.length > 2 && (
-                        <div className="text-xs text-slate-400">
+                        <div className={`text-xs ${isToday ? 'text-gray-300' : 'text-gray-500'}`}>
                           +{assignedRoutines.length - 2} altro/i
                         </div>
                       )}
@@ -193,17 +192,17 @@ const Calendar = () => {
         </Card>
 
         {/* Legend */}
-        <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-slate-400">
+        <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-500">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-emerald-500 rounded"></div>
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
             <span>Workout Completato</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 border border-blue-400 rounded"></div>
+            <div className="w-3 h-3 border border-gray-400 rounded"></div>
             <span>Routine Programmata</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500/20 border border-blue-500/50 rounded"></div>
+            <div className="w-3 h-3 bg-gray-900 rounded"></div>
             <span>Oggi</span>
           </div>
         </div>

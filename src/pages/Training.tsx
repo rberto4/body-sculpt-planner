@@ -160,14 +160,14 @@ const Training = () => {
 
   if (!currentWorkout || exercises.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 font-outfit">
+      <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
         <div className="container mx-auto max-w-2xl">
           <div className="text-center py-12">
-            <h1 className="text-3xl font-bold text-white mb-4">Nessun Allenamento</h1>
-            <p className="text-slate-300 mb-6">Seleziona una routine per iniziare l'allenamento.</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Nessun Allenamento</h1>
+            <p className="text-gray-600 mb-6">Seleziona una routine per iniziare l'allenamento.</p>
             <Button 
               onClick={() => navigate("/routines")}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
             >
               Vai alle Routine
             </Button>
@@ -178,53 +178,50 @@ const Training = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 font-outfit">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-      
-      <div className="container mx-auto max-w-2xl relative z-10">
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
+      <div className="container mx-auto max-w-2xl">
         {/* Header */}
         <div className="flex items-center mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mr-4 text-white hover:text-blue-400"
+            className="mr-4 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Indietro
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">Allenamento Attivo</h1>
-            <p className="text-slate-300">Traccia la tua sessione di allenamento</p>
+            <h1 className="text-3xl font-bold text-gray-900">Allenamento Attivo</h1>
+            <p className="text-gray-600">Traccia la tua sessione di allenamento</p>
           </div>
         </div>
 
         {!isTraining ? (
           /* Pre-workout screen */
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+          <Card className="bg-white border-gray-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-white text-center font-outfit">
+              <CardTitle className="text-gray-900 text-center font-outfit">
                 {currentWorkout.name}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-white mb-2">
+                <div className="text-2xl font-bold text-gray-900 mb-2">
                   {exercises.length} Esercizi
                 </div>
-                <p className="text-slate-300">Pronto per iniziare il tuo allenamento?</p>
+                <p className="text-gray-600">Pronto per iniziare il tuo allenamento?</p>
               </div>
 
               <div className="space-y-3">
                 {exercises.map((exercise, index) => (
-                  <div key={exercise.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                  <div key={exercise.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <span className="font-semibold text-white">{exercise.exercise.name}</span>
-                      <div className="text-sm text-slate-300">
+                      <span className="font-semibold text-gray-900">{exercise.exercise.name}</span>
+                      <div className="text-sm text-gray-600">
                         {exercise.sets} set × {exercise.reps} rip
                       </div>
                     </div>
-                    <Badge variant="outline" className="border-white/30 text-slate-300">
+                    <Badge variant="outline" className="border-gray-300 text-gray-600">
                       {exercise.rest_time}s riposo
                     </Badge>
                   </div>
@@ -233,7 +230,7 @@ const Training = () => {
 
               <Button 
                 onClick={startWorkout}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-semibold py-3"
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3"
               >
                 <Play className="w-5 h-5 mr-2" />
                 Inizia Allenamento
@@ -244,11 +241,11 @@ const Training = () => {
           /* Active workout screen */
           <div className="space-y-6">
             {/* Progress */}
-            <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+            <Card className="bg-white border-gray-200 shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-300">Progresso Allenamento</span>
-                  <span className="text-sm text-slate-300">
+                  <span className="text-sm text-gray-600">Progresso Allenamento</span>
+                  <span className="text-sm text-gray-600">
                     {exerciseStates.filter(ex => ex.completed || ex.skipped).length}/{exercises.length} esercizi
                   </span>
                 </div>
@@ -266,22 +263,22 @@ const Training = () => {
               />
             ) : (
               /* Exercise screen */
-              <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+              <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-white text-center font-outfit">
+                  <CardTitle className="text-gray-900 text-center font-outfit">
                     {currentExercise.exercise.name}
                   </CardTitle>
-                  <div className="text-center text-slate-300">
+                  <div className="text-center text-gray-600">
                     Esercizio {currentExerciseIndex + 1} di {exercises.length}
                   </div>
                 </CardHeader>
                 
                 <CardContent className="space-y-6">
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-white mb-2">
+                    <div className="text-4xl font-bold text-gray-900 mb-2">
                       Set {currentSet} / {currentExercise.sets}
                     </div>
-                    <div className="text-xl text-slate-300">
+                    <div className="text-xl text-gray-600">
                       {currentExercise.reps} ripetizioni
                     </div>
                   </div>
@@ -289,7 +286,7 @@ const Training = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <Button 
                       onClick={completeSet}
-                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-semibold py-3"
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3"
                     >
                       <CheckCircle className="w-5 h-5 mr-2" />
                       Completa Set
@@ -297,7 +294,7 @@ const Training = () => {
                     <Button 
                       onClick={skipSet}
                       variant="outline"
-                      className="border-red-500/50 text-red-400 hover:bg-red-500/10 py-3"
+                      className="border-red-500 text-red-500 hover:bg-red-50 py-3"
                     >
                       <XCircle className="w-5 h-5 mr-2" />
                       Salta Set
@@ -308,9 +305,9 @@ const Training = () => {
             )}
 
             {/* Exercise List */}
-            <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+            <Card className="bg-white border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white font-outfit">Lista Esercizi</CardTitle>
+                <CardTitle className="text-gray-900 font-outfit">Lista Esercizi</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -319,19 +316,23 @@ const Training = () => {
                       key={exercise.id} 
                       className={`flex items-center justify-between p-3 rounded-lg ${
                         index === currentExerciseIndex 
-                          ? 'bg-blue-500/20 border border-blue-500/50' 
+                          ? 'bg-gray-900 text-white' 
                           : exerciseStates[index].completed 
-                          ? 'bg-emerald-500/20 border border-emerald-500/50' 
+                          ? 'bg-green-50 border border-green-200' 
                           : exerciseStates[index].skipped
-                          ? 'bg-red-500/20 border border-red-500/50'
-                          : 'bg-white/10'
+                          ? 'bg-red-50 border border-red-200'
+                          : 'bg-gray-50'
                       }`}
                     >
-                      <span className="font-semibold text-white">{exercise.exercise.name}</span>
+                      <span className={`font-semibold ${
+                        index === currentExerciseIndex ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {exercise.exercise.name}
+                      </span>
                       <div className="flex items-center space-x-2">
-                        {exerciseStates[index].completed && <CheckCircle className="w-4 h-4 text-emerald-400" />}
-                        {exerciseStates[index].skipped && <XCircle className="w-4 h-4 text-red-400" />}
-                        {index === currentExerciseIndex && <Play className="w-4 h-4 text-blue-400" />}
+                        {exerciseStates[index].completed && <CheckCircle className="w-4 h-4 text-green-500" />}
+                        {exerciseStates[index].skipped && <XCircle className="w-4 h-4 text-red-500" />}
+                        {index === currentExerciseIndex && <Play className="w-4 h-4 text-white" />}
                       </div>
                     </div>
                   ))}

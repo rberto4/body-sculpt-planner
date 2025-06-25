@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Calendar, Timer, Edit, Heart, Home, TrendingUp, LogOut } from "lucide-react";
+import { Calendar, Timer, Edit, Heart, Home, TrendingUp, LogOut, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,6 +16,7 @@ export const Navigation = () => {
     { icon: Calendar, label: "Calendario", path: "/calendar" },
     { icon: Timer, label: "Allenamento", path: "/training" },
     { icon: TrendingUp, label: "Progressi", path: "/progress" },
+    { icon: User, label: "Profilo", path: "/profile" },
   ];
 
   const handleSignOut = async () => {
@@ -76,7 +77,7 @@ export const Navigation = () => {
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex space-x-1">
-            {navItems.slice(1, 4).map((item) => {
+            {navItems.slice(1, 5).map((item) => {
               const isActive = location.pathname === item.path || 
                 (item.path !== "/" && location.pathname.startsWith(item.path));
               

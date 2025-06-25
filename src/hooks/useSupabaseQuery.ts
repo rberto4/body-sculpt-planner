@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -126,7 +125,7 @@ export const useCreateExercise = () => {
   });
 };
 
-// Hook per aggiungere esercizi a una routine
+// Hook per aggiungere esercizi a una routine (updated)
 export const useAddExerciseToRoutine = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -139,8 +138,16 @@ export const useAddExerciseToRoutine = () => {
         sets: number;
         reps?: number;
         duration?: number;
+        duration_unit?: string;
+        distance?: number;
+        distance_unit?: string;
         rest_time: number;
         tracking_type: string;
+        weight?: number;
+        weight_unit?: string;
+        rpe?: number;
+        mav?: boolean;
+        warmup?: boolean;
         notes?: string;
         order_index: number;
       };

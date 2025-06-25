@@ -75,51 +75,72 @@ export type Database = {
       routine_exercises: {
         Row: {
           created_at: string
+          distance: number | null
+          distance_unit: string | null
           duration: number | null
+          duration_unit: string | null
           exercise_id: string
           id: string
           is_superset: boolean | null
+          mav: boolean | null
           notes: string | null
           order_index: number
           reps: number | null
           rest_time: number | null
           routine_id: string
+          rpe: number | null
           sets: number
           superset_group: number | null
           tracking_type: string
+          warmup: boolean | null
           weight: number | null
+          weight_unit: string | null
         }
         Insert: {
           created_at?: string
+          distance?: number | null
+          distance_unit?: string | null
           duration?: number | null
+          duration_unit?: string | null
           exercise_id: string
           id?: string
           is_superset?: boolean | null
+          mav?: boolean | null
           notes?: string | null
           order_index?: number
           reps?: number | null
           rest_time?: number | null
           routine_id: string
+          rpe?: number | null
           sets?: number
           superset_group?: number | null
           tracking_type?: string
+          warmup?: boolean | null
           weight?: number | null
+          weight_unit?: string | null
         }
         Update: {
           created_at?: string
+          distance?: number | null
+          distance_unit?: string | null
           duration?: number | null
+          duration_unit?: string | null
           exercise_id?: string
           id?: string
           is_superset?: boolean | null
+          mav?: boolean | null
           notes?: string | null
           order_index?: number
           reps?: number | null
           rest_time?: number | null
           routine_id?: string
+          rpe?: number | null
           sets?: number
           superset_group?: number | null
           tracking_type?: string
+          warmup?: boolean | null
           weight?: number | null
+          weight_unit?: string | null
         }
         Relationships: [
           {
@@ -141,6 +162,7 @@ export type Database = {
       routines: {
         Row: {
           assigned_days: string[] | null
+          calculated_volume: number | null
           created_at: string
           created_by: string
           id: string
@@ -152,6 +174,7 @@ export type Database = {
         }
         Insert: {
           assigned_days?: string[] | null
+          calculated_volume?: number | null
           created_at?: string
           created_by: string
           id?: string
@@ -163,6 +186,7 @@ export type Database = {
         }
         Update: {
           assigned_days?: string[] | null
+          calculated_volume?: number | null
           created_at?: string
           created_by?: string
           id?: string
@@ -176,7 +200,9 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          actual_rpe: number | null
           created_at: string
+          distance_completed: number | null
           duration_completed: number | null
           exercise_id: string
           id: string
@@ -187,10 +213,13 @@ export type Database = {
           routine_exercise_id: string
           sets_completed: number | null
           weight_used: number[] | null
+          weight_used_values: number[] | null
           workout_id: string
         }
         Insert: {
+          actual_rpe?: number | null
           created_at?: string
+          distance_completed?: number | null
           duration_completed?: number | null
           exercise_id: string
           id?: string
@@ -201,10 +230,13 @@ export type Database = {
           routine_exercise_id: string
           sets_completed?: number | null
           weight_used?: number[] | null
+          weight_used_values?: number[] | null
           workout_id: string
         }
         Update: {
+          actual_rpe?: number | null
           created_at?: string
+          distance_completed?: number | null
           duration_completed?: number | null
           exercise_id?: string
           id?: string
@@ -215,6 +247,7 @@ export type Database = {
           routine_exercise_id?: string
           sets_completed?: number | null
           weight_used?: number[] | null
+          weight_used_values?: number[] | null
           workout_id?: string
         }
         Relationships: [

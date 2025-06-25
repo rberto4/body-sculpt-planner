@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Clock, Play, Pause, RotateCcw, Plus } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play, Pause, SkipForward, Plus } from "lucide-react";
 
 interface TimerProps {
   initialTime: number;
@@ -15,46 +14,27 @@ interface TimerProps {
 
 export const Timer = ({ initialTime, onComplete, onSkip, onAddTime, isActive }: TimerProps) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [isRunning, setIsRunning] = useState(false);
-  const [totalTime] = useState(initialTime);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setTimeLeft(initialTime);
-    setIsRunning(isActive);
-  }, [initialTime, isActive]);
+  }, [initialTime]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    if (!isActive || isPaused || timeLeft <= 0) return;
 
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            onComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          onComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, onComplete]);
-
-  const toggleTimer = () => {
-    setIsRunning(!isRunning);
-  };
-
-  const resetTimer = () => {
-    setTimeLeft(initialTime);
-    setIsRunning(false);
-  };
-
-  const addTime = () => {
-    setTimeLeft(prev => prev + 30);
-    onAddTime();
-  };
+  }, [isActive, isPaused, timeLeft, onComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -62,58 +42,52 @@ export const Timer = ({ initialTime, onComplete, onSkip, onAddTime, isActive }: 
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progress = ((totalTime - timeLeft) / totalTime) * 100;
+  const progress = ((initialTime - timeLeft) / initialTime) * 100;
 
   return (
-    <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-      <CardContent className="p-6 text-center">
-        <div className="mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-            <Clock className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2 font-outfit">Tempo di Riposo</h2>
-          <div className="text-5xl font-bold text-white mb-4 font-outfit">
+    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-gray-900 dark:text-white text-center font-outfit">
+          Tempo di Riposo
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="text-center">
+          <div className="text-6xl font-bold text-gray-900 dark:text-white mb-4">
             {formatTime(timeLeft)}
           </div>
-          <Progress 
-            value={progress} 
-            className="h-2 mb-4"
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Button 
-            onClick={toggleTimer}
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white/10"
-          >
-            {isRunning ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-            {isRunning ? 'Pausa' : 'Avvia'}
-          </Button>
-          <Button 
-            onClick={resetTimer}
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white/10"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Reset
-          </Button>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+            <div 
+              className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Button 
-            onClick={onSkip}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white font-semibold"
-          >
-            Salta Riposo
-          </Button>
-          <Button 
-            onClick={addTime}
+        <div className="grid grid-cols-3 gap-3">
+          <Button
+            onClick={() => setIsPaused(!isPaused)}
             variant="outline"
-            className="w-full border-white/30 text-white hover:bg-white/10"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          </Button>
+          
+          <Button
+            onClick={onAddTime}
+            variant="outline"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            <Plus className="w-4 h-4 mr-1" />
             +30s
+          </Button>
+          
+          <Button
+            onClick={onSkip}
+            className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+          >
+            <SkipForward className="w-4 h-4 mr-1" />
+            Salta
           </Button>
         </div>
       </CardContent>

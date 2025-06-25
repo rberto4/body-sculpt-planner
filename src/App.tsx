@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import Profile from "./pages/Profile";
 import CreateRoutine from "./pages/CreateRoutine";
 import RoutineDetail from "./pages/RoutineDetail";
 import NotFound from "./pages/NotFound";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +26,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <BrowserRouter>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route 
@@ -46,6 +46,7 @@ const App = () => (
                       <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    <FloatingActionButton />
                   </ProtectedRoute>
                 } 
               />

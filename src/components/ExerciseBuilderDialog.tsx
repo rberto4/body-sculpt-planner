@@ -22,17 +22,17 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
   
   const [open, setOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
-  const [sets, setSets] = useState(3);
-  const [reps, setReps] = useState(12);
-  const [duration, setDuration] = useState(30);
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
+  const [duration, setDuration] = useState("");
   const [durationUnit, setDurationUnit] = useState("seconds");
-  const [distance, setDistance] = useState(100);
+  const [distance, setDistance] = useState("");
   const [distanceUnit, setDistanceUnit] = useState("m");
-  const [restTime, setRestTime] = useState(60);
+  const [restTime, setRestTime] = useState("");
   const [trackingType, setTrackingType] = useState("sets_reps");
-  const [weight, setWeight] = useState(0);
+  const [weight, setWeight] = useState("");
   const [weightUnit, setWeightUnit] = useState("kg");
-  const [rpe, setRpe] = useState<number | undefined>();
+  const [rpe, setRpe] = useState("");
   const [mav, setMav] = useState(false);
   const [warmup, setWarmup] = useState(false);
   const [notes, setNotes] = useState("");
@@ -45,19 +45,19 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
     if (!selectedExercise || !routineId) return;
 
     const exerciseData = {
-      sets,
-      reps: trackingType === "sets_reps" ? reps : undefined,
-      duration: trackingType === "duration" || trackingType === "distance_duration" ? duration : undefined,
+      sets: parseInt(sets) || 3,
+      reps: trackingType === "sets_reps" ? parseInt(reps) || 12 : undefined,
+      duration: trackingType === "duration" || trackingType === "distance_duration" ? parseInt(duration) || 30 : undefined,
       duration_unit: durationUnit,
-      distance: trackingType === "distance_duration" ? distance : undefined,
+      distance: trackingType === "distance_duration" ? parseInt(distance) || 100 : undefined,
       distance_unit: distanceUnit,
-      rest_time: restTime,
+      rest_time: parseInt(restTime) || 60,
       tracking_type: trackingType,
-      weight: trackingType === "sets_reps" && weight > 0 ? weight : undefined,
+      weight: trackingType === "sets_reps" && weight ? parseFloat(weight) : undefined,
       weight_unit: weightUnit,
-      rpe,
-      mav,
-      warmup,
+      rpe: trackingType === "sets_reps" && rpe ? parseInt(rpe) : undefined,
+      mav: trackingType === "sets_reps" ? mav : false,
+      warmup: trackingType === "sets_reps" ? warmup : false,
       notes,
       order_index: existingExercises.length
     };
@@ -71,13 +71,13 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
       
       // Reset form
       setSelectedExercise("");
-      setSets(3);
-      setReps(12);
-      setDuration(30);
-      setDistance(100);
-      setRestTime(60);
-      setWeight(0);
-      setRpe(undefined);
+      setSets("");
+      setReps("");
+      setDuration("");
+      setDistance("");
+      setRestTime("");
+      setWeight("");
+      setRpe("");
       setMav(false);
       setWarmup(false);
       setNotes("");
@@ -144,8 +144,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
               <Label className="text-gray-700 dark:text-gray-300">Set</Label>
               <Input
                 type="number"
-                value={sets || ""}
-                onChange={(e) => setSets(Number(e.target.value) || 0)}
+                value={sets}
+                onChange={(e) => setSets(e.target.value)}
                 className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                 min="1"
                 max="10"
@@ -159,8 +159,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                   <Label className="text-gray-700 dark:text-gray-300">Ripetizioni</Label>
                   <Input
                     type="number"
-                    value={reps || ""}
-                    onChange={(e) => setReps(Number(e.target.value) || 0)}
+                    value={reps}
+                    onChange={(e) => setReps(e.target.value)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
                     max="100"
@@ -172,8 +172,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                   <div className="flex space-x-2">
                     <Input
                       type="number"
-                      value={weight || ""}
-                      onChange={(e) => setWeight(Number(e.target.value) || 0)}
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
                       className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                       min="0"
                       step="0.5"
@@ -199,8 +199,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                 <div className="flex space-x-2">
                   <Input
                     type="number"
-                    value={duration || ""}
-                    onChange={(e) => setDuration(Number(e.target.value) || 0)}
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
                     placeholder="30"
@@ -224,8 +224,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
                 <div className="flex space-x-2">
                   <Input
                     type="number"
-                    value={distance || ""}
-                    onChange={(e) => setDistance(Number(e.target.value) || 0)}
+                    value={distance}
+                    onChange={(e) => setDistance(e.target.value)}
                     className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     min="1"
                     placeholder="100"
@@ -249,8 +249,8 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
             <Label className="text-gray-700 dark:text-gray-300">Tempo di Riposo (secondi)</Label>
             <Input
               type="number"
-              value={restTime || ""}
-              onChange={(e) => setRestTime(Number(e.target.value) || 0)}
+              value={restTime}
+              onChange={(e) => setRestTime(e.target.value)}
               className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
               min="0"
               max="600"
@@ -258,15 +258,15 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
             />
           </div>
 
-          {/* Advanced Settings - Only show for sets_reps */}
+          {/* Advanced Settings - Solo per sets_reps */}
           {trackingType === "sets_reps" && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-gray-700 dark:text-gray-300">RPE (1-10)</Label>
                 <Input
                   type="number"
-                  value={rpe || ""}
-                  onChange={(e) => setRpe(e.target.value ? Number(e.target.value) : undefined)}
+                  value={rpe}
+                  onChange={(e) => setRpe(e.target.value)}
                   className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                   min="1"
                   max="10"

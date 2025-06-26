@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Calendar, Target, Award, Trophy, Flame } from "lucide-react";
 import { useWorkouts, useRoutines } from "@/hooks/useSupabaseQuery";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Progress = () => {
   const { data: workouts = [] } = useWorkouts();
@@ -46,13 +47,32 @@ const Progress = () => {
   completedWorkouts.forEach(workout => {
     workout.workout_exercises?.forEach((we: any) => {
       const exerciseName = we.exercise?.name || 'Unknown';
+      const exercise = we.routine_exercise?.exercise;
       if (!exerciseProgress[exerciseName]) {
         exerciseProgress[exerciseName] = [];
       }
+      
+      // Determine what to track based on exercise type
+      let value = 0;
+      let metric = 'reps';
+      
+      if (we.routine_exercise?.tracking_type === 'sets_reps') {
+        value = we.weight_used?.[0] || 0;
+        metric = 'weight';
+      } else if (we.routine_exercise?.tracking_type === 'duration') {
+        value = we.duration_completed || 0;
+        metric = 'duration';
+      } else if (we.routine_exercise?.tracking_type === 'distance_duration') {
+        value = we.routine_exercise?.distance || 0;
+        metric = 'distance';
+      }
+      
       exerciseProgress[exerciseName].push({
         date: workout.completed_at,
+        value: value,
+        metric: metric,
         sets: we.sets_completed,
-        reps: we.reps_completed,
+        reps: we.reps_completed?.[0] || 0,
         completed: we.is_completed
       });
     });
@@ -61,11 +81,12 @@ const Progress = () => {
   const getProgressIndicator = (sessions: any[]) => {
     if (sessions.length < 2) return { trend: "neutral", percentage: 0 };
     
-    const validSessions = sessions.filter(s => s.reps && s.reps.length > 0);
+    const validSessions = sessions.filter(s => s.value > 0);
     if (validSessions.length < 2) return { trend: "neutral", percentage: 0 };
     
-    const first = validSessions[validSessions.length - 1].reps[0] || 0;
-    const latest = validSessions[0].reps[0] || 0;
+    const sortedSessions = validSessions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const first = sortedSessions[0].value;
+    const latest = sortedSessions[sortedSessions.length - 1].value;
     
     if (first === 0) return { trend: "neutral", percentage: 0 };
     
@@ -75,6 +96,17 @@ const Progress = () => {
       trend: percentage > 0 ? "up" : percentage < 0 ? "down" : "neutral",
       percentage: Math.abs(percentage)
     };
+  };
+
+  const prepareChartData = (sessions: any[]) => {
+    return sessions
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-8) // Last 8 sessions
+      .map((session, index) => ({
+        session: `S${index + 1}`,
+        value: session.value,
+        date: new Date(session.date).toLocaleDateString('it-IT', { month: 'short', day: 'numeric' })
+      }));
   };
 
   return (
@@ -137,7 +169,13 @@ const Progress = () => {
           
           {Object.entries(exerciseProgress).slice(0, 6).map(([exerciseName, sessions], index) => {
             const progress = getProgressIndicator(sessions);
-            const recentSessions = sessions.slice(0, 4);
+            const chartData = prepareChartData(sessions);
+            const metric = sessions[0]?.metric || 'reps';
+            
+            let unit = '';
+            if (metric === 'weight') unit = 'kg';
+            else if (metric === 'duration') unit = 's';
+            else if (metric === 'distance') unit = 'm';
             
             return (
               <Card key={index} className="bg-white border-gray-200 shadow-sm">
@@ -166,44 +204,60 @@ const Progress = () => {
                 
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Progress Timeline */}
-                    <div className="relative">
-                      <div className="flex justify-between items-end h-32 bg-gray-50 rounded-lg p-4">
-                        {recentSessions.map((session, sessionIndex) => {
-                          const reps = session.reps?.[0] || 0;
-                          const maxReps = Math.max(...recentSessions.map(s => s.reps?.[0] || 0));
-                          const height = maxReps > 0 ? (reps / maxReps) * 80 : 20;
-                          
-                          return (
-                            <div key={sessionIndex} className="flex flex-col items-center min-w-[40px]">
-                              <div 
-                                className="bg-gray-900 rounded-t min-w-[20px] transition-all duration-300 hover:bg-gray-700"
-                                style={{ height: `${Math.max(height, 10)}px` }}
-                              />
-                              <div className="text-xs text-gray-500 mt-2">
-                                {new Date(session.date).toLocaleDateString('it-IT', { month: 'short', day: 'numeric' })}
-                              </div>
-                              <div className="text-xs font-semibold text-gray-900">
-                                {reps}
-                              </div>
-                            </div>
-                          );
-                        })}
+                    {/* Progress Chart */}
+                    {chartData.length > 1 && (
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="session" 
+                              stroke="#6b7280"
+                              fontSize={12}
+                            />
+                            <YAxis 
+                              stroke="#6b7280"
+                              fontSize={12}
+                            />
+                            <Tooltip 
+                              labelFormatter={(value) => `Sessione ${value}`}
+                              formatter={(value: any) => [`${value} ${unit}`, metric === 'weight' ? 'Carico' : metric === 'duration' ? 'Durata' : 'Distanza']}
+                              contentStyle={{
+                                backgroundColor: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px'
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="value" 
+                              stroke="#111827" 
+                              strokeWidth={2}
+                              dot={{ fill: '#111827', strokeWidth: 2, r: 4 }}
+                              activeDot={{ r: 6, stroke: '#111827', strokeWidth: 2 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
-                    </div>
+                    )}
 
                     {/* Recent Sessions */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-600 mb-2">Sessioni Recenti</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {recentSessions.map((session, sessionIndex) => (
+                        {sessions.slice(0, 4).map((session, sessionIndex) => (
                           <div key={sessionIndex} className="bg-gray-50 rounded p-2 text-center">
                             <div className="text-xs text-gray-500">
                               {new Date(session.date).toLocaleDateString('it-IT')}
                             </div>
                             <div className="text-sm font-semibold text-gray-900">
-                              {session.sets} × {session.reps?.[0] || 0}
+                              {session.sets} × {session.reps}
                             </div>
+                            {session.value > 0 && (
+                              <div className="text-xs text-gray-600">
+                                {session.value} {unit}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

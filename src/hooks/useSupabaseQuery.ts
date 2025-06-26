@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -82,6 +83,59 @@ export const useCreateRoutine = () => {
         description: error.message || "Errore durante la creazione della routine.",
         variant: "destructive",
       });
+    },
+  });
+};
+
+// Hook per aggiornare una routine
+export const useUpdateRoutine = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...routineData }: { id: string } & any) => {
+      const { data, error } = await supabase
+        .from('routines')
+        .update(routineData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
+      toast({
+        title: "Successo!",
+        description: "Routine aggiornata con successo.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Errore",
+        description: error.message || "Errore durante l'aggiornamento della routine.",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Hook per eliminare una routine
+export const useDeleteRoutine = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (routineId: string) => {
+      const { error } = await supabase
+        .from('routines')
+        .delete()
+        .eq('id', routineId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
     },
   });
 };

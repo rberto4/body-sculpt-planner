@@ -15,7 +15,7 @@ const CreateRoutine = () => {
   const { id } = useParams();
   const isEdit = !!id;
   
-  const { data: existingRoutine } = useRoutine(id!, { enabled: isEdit });
+  const { data: existingRoutine } = useRoutine(id!);
   const createRoutineMutation = useCreateRoutine();
   const updateRoutineMutation = useUpdateRoutine();
   

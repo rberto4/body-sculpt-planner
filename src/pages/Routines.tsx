@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,7 +101,7 @@ const Routines = () => {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/routines/create/${routine.id}`);
+                          navigate(`/routines/create?edit=${routine.id}`);
                         }}
                         className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                       >

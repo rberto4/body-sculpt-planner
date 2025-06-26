@@ -1,33 +1,43 @@
 
-const muscleIconMap: Record<string, string> = {
-  'Petto': '/src/assets/muscle_images/chest.png',
-  'Schiena': '/src/assets/muscle_images/back.png',
-  'Spalle': '/src/assets/muscle_images/shoulders.png',
-  'Braccia': '/src/assets/muscle_images/biceps.png',
-  'Bicipiti': '/src/assets/muscle_images/biceps.png',
-  'Tricipiti': '/src/assets/muscle_images/triceps.png',
-  'Gambe': '/src/assets/muscle_images/legs.png',
-  'Quadricipiti': '/src/assets/muscle_images/legs.png',
-  'Femorali': '/src/assets/muscle_images/hamstrings.png',
-  'Glutei': '/src/assets/muscle_images/glutes.png',
-  'Polpacci': '/src/assets/muscle_images/calfs.png',
-  'Addominali': '/src/assets/muscle_images/core.png',
-  'Core': '/src/assets/muscle_images/core.png',
-  'Cardio': '/src/assets/muscle_images/core.png',
-  'Full Body': '/src/assets/muscle_images/core.png'
-};
+import backIcon from '@/assets/muscle_images/back.png';
+import bicepsIcon from '@/assets/muscle_images/biceps.png';
+import calfsIcon from '@/assets/muscle_images/calfs.png';
+import chestIcon from '@/assets/muscle_images/chest.png';
+import coreIcon from '@/assets/muscle_images/core.png';
+import glutesIcon from '@/assets/muscle_images/glutes.png';
+import hamstringsIcon from '@/assets/muscle_images/hamstrings.png';
+import legsIcon from '@/assets/muscle_images/legs.png';
+import shouldersIcon from '@/assets/muscle_images/shoulders.png';
+import tricepsIcon from '@/assets/muscle_images/triceps.png';
 
-export const useMuscleIcon = (muscleGroup: string): string => {
-  return muscleIconMap[muscleGroup] || '/src/assets/muscle_images/core.png';
+export const useMuscleIcons = () => {
+  const getMuscleIcon = (muscleGroup: string): string => {
+    const icons: { [key: string]: string } = {
+      'back': backIcon,
+      'biceps': bicepsIcon,
+      'calfs': calfsIcon,
+      'chest': chestIcon,
+      'core': coreIcon,
+      'glutes': glutesIcon,
+      'hamstrings': hamstringsIcon,
+      'legs': legsIcon,
+      'shoulders': shouldersIcon,
+      'triceps': tricepsIcon,
+    };
+    
+    return icons[muscleGroup.toLowerCase()] || chestIcon;
+  };
+
+  return { getMuscleIcon };
 };
 
 export const MuscleIcon = ({ muscleGroup, className = "w-6 h-6" }: { muscleGroup: string; className?: string }) => {
-  const iconSrc = useMuscleIcon(muscleGroup);
+  const { getMuscleIcon } = useMuscleIcons();
   
   return (
     <img 
-      src={iconSrc} 
-      alt={muscleGroup}
+      src={getMuscleIcon(muscleGroup)} 
+      alt={muscleGroup} 
       className={className}
     />
   );

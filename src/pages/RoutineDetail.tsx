@@ -7,6 +7,7 @@ import { ExerciseBuilderDialog } from "@/components/ExerciseBuilderDialog";
 import { ArrowLeft, Play, Edit, Calendar, Clock, Target, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRoutine } from "@/hooks/useSupabaseQuery";
+import { MuscleIcon } from "@/hooks/useMuscleIcons";
 
 const RoutineDetail = () => {
   const navigate = useNavigate();
@@ -181,15 +182,18 @@ const RoutineDetail = () => {
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-3">
+                            <MuscleIcon 
+                              muscleGroup={routineExercise.exercise.muscle_group} 
+                              className="w-8 h-8"
+                            />
                             <div>
                               <h3 className="font-semibold text-gray-900 dark:text-white">{routineExercise.exercise.name}</h3>
                               <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center space-x-2">
                                 <span>Esercizio {index + 1}</span>
-                                {routineExercise.warmup && <Badge variant="secondary" className="text-xs">Riscaldamento</Badge>}
-                                {routineExercise.mav && <Badge variant="secondary" className="text-xs">MAV</Badge>}
+                                {routineExercise.warmup && <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">Riscaldamento</Badge>}
+                                {routineExercise.mav && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800">MAV</Badge>}
                               </div>
                             </div>
-                            {/* Muscle group icon would go here */}
                           </div>
                           <Badge variant="secondary" className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
                             {routineExercise.tracking_type === "sets_reps" ? "Set & Rip" : 

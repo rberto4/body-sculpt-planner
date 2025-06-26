@@ -1,4 +1,5 @@
 
+import React from 'react';
 import backIcon from '@/assets/muscle_images/back.png';
 import bicepsIcon from '@/assets/muscle_images/biceps.png';
 import calfsIcon from '@/assets/muscle_images/calfs.png';

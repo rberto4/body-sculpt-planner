@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -21,13 +20,31 @@ export const useRoutines = () => {
             order_index,
             notes,
             tracking_type,
+            weight,
+            weight_unit,
             exercise:exercises (*)
           )
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      
+      // Calculate volume for each routine
+      const routinesWithVolume = data?.map(routine => {
+        const totalVolume = routine.routine_exercises?.reduce((acc: number, ex: any) => {
+          const weight = ex.weight || 0;
+          const sets = ex.sets || 0;
+          const reps = ex.reps || 0;
+          return acc + (weight * sets * reps);
+        }, 0) || 0;
+        
+        return {
+          ...routine,
+          calculated_volume: totalVolume
+        };
+      });
+      
+      return routinesWithVolume;
     },
   });
 };
@@ -230,6 +247,95 @@ export const useAddExerciseToRoutine = () => {
       toast({
         title: "Errore",
         description: error.message || "Errore durante l'aggiunta dell'esercizio.",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Hook per aggiornare un esercizio in una routine
+export const useUpdateRoutineExercise = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ 
+      routineExerciseId, 
+      exerciseData 
+    }: {
+      routineExerciseId: string;
+      exerciseData: {
+        sets?: number;
+        reps?: number;
+        duration?: number;
+        duration_unit?: string;
+        distance?: number;
+        distance_unit?: string;
+        rest_time?: number;
+        tracking_type?: string;
+        weight?: number;
+        weight_unit?: string;
+        rpe?: number;
+        mav?: boolean;
+        warmup?: boolean;
+        notes?: string;
+        order_index?: number;
+      };
+    }) => {
+      const { data, error } = await supabase
+        .from('routine_exercises')
+        .update(exerciseData)
+        .eq('id', routineExerciseId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
+      queryClient.invalidateQueries({ queryKey: ['routine'] });
+      toast({
+        title: "Successo!",
+        description: "Esercizio aggiornato con successo.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Errore",
+        description: error.message || "Errore durante l'aggiornamento dell'esercizio.",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Hook per eliminare un esercizio da una routine
+export const useRemoveExerciseFromRoutine = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (routineExerciseId: string) => {
+      const { error } = await supabase
+        .from('routine_exercises')
+        .delete()
+        .eq('id', routineExerciseId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
+      queryClient.invalidateQueries({ queryKey: ['routine'] });
+      toast({
+        title: "Successo!",
+        description: "Esercizio rimosso dalla routine.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Errore",
+        description: error.message || "Errore durante la rimozione dell'esercizio.",
         variant: "destructive",
       });
     },

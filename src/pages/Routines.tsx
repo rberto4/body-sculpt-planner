@@ -1,11 +1,13 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, Target, Play, Edit, Trash2 } from "lucide-react";
+import { Plus, Calendar, Target, Play, Edit, Trash2, Dumbbell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRoutines, useDeleteRoutine } from "@/hooks/useSupabaseQuery";
 import { useToast } from "@/hooks/use-toast";
+import { MuscleIcon } from "@/hooks/useMuscleIcons";
 
 const Routines = () => {
   const navigate = useNavigate();
@@ -136,6 +138,34 @@ const Routines = () => {
                       {routine.calculated_volume || 0}kg
                     </span>
                   </div>
+
+                  {/* Exercise Preview */}
+                  {routine.routine_exercises?.length > 0 && (
+                    <div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">Esercizi:</div>
+                      <div className="space-y-1">
+                        {routine.routine_exercises.slice(0, 3).map((routineExercise: any) => (
+                          <div key={routineExercise.id} className="flex items-center space-x-2 text-xs">
+                            <MuscleIcon 
+                              muscleGroup={routineExercise.exercise.muscle_group} 
+                              className="w-4 h-4"
+                            />
+                            <span className="text-gray-700 dark:text-gray-300 truncate">
+                              {routineExercise.exercise.name}
+                            </span>
+                            <span className="text-gray-500 dark:text-gray-400">
+                              {routineExercise.sets}×{routineExercise.reps || routineExercise.duration}
+                            </span>
+                          </div>
+                        ))}
+                        {routine.routine_exercises.length > 3 && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            +{routine.routine_exercises.length - 3} altri esercizi
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {routine.assigned_days?.length > 0 && (
                     <div>

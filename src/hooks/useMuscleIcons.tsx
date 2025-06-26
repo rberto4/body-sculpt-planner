@@ -26,7 +26,9 @@ export const useMuscleIcons = () => {
       'triceps': tricepsIcon,
     };
     
-    return icons[muscleGroup.toLowerCase()] || chestIcon;
+    // Normalize the muscle group name to lowercase for matching
+    const normalizedGroup = muscleGroup.toLowerCase();
+    return icons[normalizedGroup] || chestIcon;
   };
 
   return { getMuscleIcon };

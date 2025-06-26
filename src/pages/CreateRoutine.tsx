@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,21 +10,31 @@ import { ArrowLeft, Plus, X, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCreateRoutine, useRoutine, useUpdateRoutine } from "@/hooks/useSupabaseQuery";
 import { ExerciseBuilderDialog } from "@/components/ExerciseBuilderDialog";
+import { CreateExerciseDialog } from "@/components/CreateExerciseDialog";
 
 const CreateRoutine = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
   
-  const { data: existingRoutine } = useRoutine(id!);
+  const { data: existingRoutine } = useRoutine(id || "");
   const createRoutineMutation = useCreateRoutine();
   const updateRoutineMutation = useUpdateRoutine();
   
-  const [routineName, setRoutineName] = useState(existingRoutine?.name || "");
-  const [selectedType, setSelectedType] = useState(existingRoutine?.type || "");
+  const [routineName, setRoutineName] = useState("");
+  const [selectedType, setSelectedType] = useState("");
   const [customType, setCustomType] = useState("");
-  const [selectedDays, setSelectedDays] = useState<string[]>(existingRoutine?.assigned_days || []);
-  const [exercises, setExercises] = useState<any[]>(existingRoutine?.routine_exercises || []);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [exercises, setExercises] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (existingRoutine) {
+      setRoutineName(existingRoutine.name || "");
+      setSelectedType(existingRoutine.type || "");
+      setSelectedDays(existingRoutine.assigned_days || []);
+      setExercises(existingRoutine.routine_exercises || []);
+    }
+  }, [existingRoutine]);
 
   const predefinedTypes = [
     "Braccia", "Gambe", "Petto", "Schiena", "Push", "Pull", 
@@ -90,6 +101,29 @@ const CreateRoutine = () => {
     navigate("/routines");
   };
 
+  const getExerciseDisplayInfo = (exercise: any) => {
+    const trackingType = exercise.tracking_type || 'sets_reps';
+    let info = `${exercise.sets} set`;
+    
+    if (trackingType === 'sets_reps') {
+      info += ` × ${exercise.reps || 0} rip`;
+      if (exercise.weight && exercise.weight > 0) {
+        info += ` - ${exercise.weight}${exercise.weight_unit || 'kg'}`;
+      }
+    } else if (trackingType === 'duration') {
+      const unit = exercise.duration_unit === 'minutes' ? 'min' : 's';
+      info += ` × ${exercise.duration || 0}${unit}`;
+    } else if (trackingType === 'distance_duration') {
+      const durationUnit = exercise.duration_unit === 'minutes' ? 'min' : 's';
+      info += ` × ${exercise.duration || 0}${durationUnit}`;
+      if (exercise.distance && exercise.distance > 0) {
+        info += ` - ${exercise.distance}${exercise.distance_unit || 'm'}`;
+      }
+    }
+    
+    return info;
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
       <div className="container mx-auto max-w-4xl">
@@ -133,7 +167,6 @@ const CreateRoutine = () => {
               </CardContent>
             </Card>
 
-            {/* Routine Type */}
             <Card className="bg-white border-gray-200">
               <CardHeader>
                 <CardTitle className="text-gray-900">Tipo di Routine</CardTitle>
@@ -175,7 +208,6 @@ const CreateRoutine = () => {
               </CardContent>
             </Card>
 
-            {/* Assigned Days */}
             <Card className="bg-white border-gray-200">
               <CardHeader>
                 <CardTitle className="text-gray-900">Giorni Assegnati</CardTitle>
@@ -237,13 +269,16 @@ const CreateRoutine = () => {
               <CardHeader>
                 <CardTitle className="text-gray-900 flex items-center justify-between">
                   Esercizi
-                  {(isEdit && id) && (
-                    <ExerciseBuilderDialog
-                      routineId={id}
-                      existingExercises={exercises}
-                      onExerciseAdded={handleExerciseAdded}
-                    />
-                  )}
+                  <div className="flex space-x-2">
+                    <CreateExerciseDialog />
+                    {(isEdit && id) && (
+                      <ExerciseBuilderDialog
+                        routineId={id}
+                        existingExercises={exercises}
+                        onExerciseAdded={handleExerciseAdded}
+                      />
+                    )}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -256,11 +291,9 @@ const CreateRoutine = () => {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{exercise.exercise.name}</h4>
+                            <h4 className="font-semibold text-gray-900">{exercise.exercise?.name || 'Esercizio'}</h4>
                             <div className="text-sm text-gray-600 mt-1">
-                              {exercise.sets} set × {exercise.reps || exercise.duration} {exercise.reps ? 'rip' : (exercise.duration_unit === 'minutes' ? 'min' : 's')}
-                              {exercise.weight && ` - ${exercise.weight}${exercise.weight_unit}`}
-                              {exercise.distance && ` - ${exercise.distance}${exercise.distance_unit}`}
+                              {getExerciseDisplayInfo(exercise)}
                             </div>
                             {(exercise.rpe || exercise.mav || exercise.warmup) && (
                               <div className="flex gap-2 mt-2">

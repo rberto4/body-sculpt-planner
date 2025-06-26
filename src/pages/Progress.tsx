@@ -47,7 +47,8 @@ const Progress = () => {
   completedWorkouts.forEach(workout => {
     workout.workout_exercises?.forEach((we: any) => {
       const exerciseName = we.exercise?.name || 'Unknown';
-      const exercise = we.routine_exercise?.exercise;
+      const routineExercise = we.routine_exercise;
+      
       if (!exerciseProgress[exerciseName]) {
         exerciseProgress[exerciseName] = [];
       }
@@ -56,14 +57,18 @@ const Progress = () => {
       let value = 0;
       let metric = 'reps';
       
-      if (we.routine_exercise?.tracking_type === 'sets_reps') {
-        value = we.weight_used?.[0] || 0;
+      if (routineExercise?.tracking_type === 'sets_reps') {
+        // For sets_reps, track the weight progression
+        const weights = we.weight_used || [];
+        if (weights.length > 0) {
+          value = Math.max(...weights.filter(w => w && w > 0)) || 0;
+        }
         metric = 'weight';
-      } else if (we.routine_exercise?.tracking_type === 'duration') {
+      } else if (routineExercise?.tracking_type === 'duration') {
         value = we.duration_completed || 0;
         metric = 'duration';
-      } else if (we.routine_exercise?.tracking_type === 'distance_duration') {
-        value = we.routine_exercise?.distance || 0;
+      } else if (routineExercise?.tracking_type === 'distance_duration') {
+        value = we.distance_completed || routineExercise?.distance || 0;
         metric = 'distance';
       }
       
@@ -73,7 +78,9 @@ const Progress = () => {
         metric: metric,
         sets: we.sets_completed,
         reps: we.reps_completed?.[0] || 0,
-        completed: we.is_completed
+        completed: we.is_completed,
+        workoutDate: new Date(workout.completed_at).toLocaleDateString('it-IT'),
+        routineExercise: routineExercise
       });
     });
   });
@@ -100,12 +107,18 @@ const Progress = () => {
 
   const prepareChartData = (sessions: any[]) => {
     return sessions
+      .filter(s => s.value > 0)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-8) // Last 8 sessions
+      .slice(-10) // Last 10 sessions
       .map((session, index) => ({
-        session: `S${index + 1}`,
+        session: index + 1,
         value: session.value,
-        date: new Date(session.date).toLocaleDateString('it-IT', { month: 'short', day: 'numeric' })
+        date: session.workoutDate,
+        fullDate: new Date(session.date).toLocaleDateString('it-IT', { 
+          day: 'numeric', 
+          month: 'short',
+          year: 'numeric'
+        })
       }));
   };
 
@@ -167,15 +180,25 @@ const Progress = () => {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Progresso Esercizi</h2>
           
-          {Object.entries(exerciseProgress).slice(0, 6).map(([exerciseName, sessions], index) => {
+          {Object.entries(exerciseProgress).slice(0, 8).map(([exerciseName, sessions], index) => {
             const progress = getProgressIndicator(sessions);
             const chartData = prepareChartData(sessions);
-            const metric = sessions[0]?.metric || 'reps';
+            const latestSession = sessions[sessions.length - 1];
+            const metric = latestSession?.metric || 'reps';
+            const trackingType = latestSession?.routineExercise?.tracking_type || 'sets_reps';
             
             let unit = '';
-            if (metric === 'weight') unit = 'kg';
-            else if (metric === 'duration') unit = 's';
-            else if (metric === 'distance') unit = 'm';
+            let chartLabel = 'Valore';
+            if (metric === 'weight') {
+              unit = 'kg';
+              chartLabel = 'Carico Massimo';
+            } else if (metric === 'duration') {
+              unit = 's';
+              chartLabel = 'Durata';
+            } else if (metric === 'distance') {
+              unit = 'm';
+              chartLabel = 'Distanza';
+            }
             
             return (
               <Card key={index} className="bg-white border-gray-200 shadow-sm">
@@ -221,7 +244,7 @@ const Progress = () => {
                             />
                             <Tooltip 
                               labelFormatter={(value) => `Sessione ${value}`}
-                              formatter={(value: any) => [`${value} ${unit}`, metric === 'weight' ? 'Carico' : metric === 'duration' ? 'Durata' : 'Distanza']}
+                              formatter={(value: any) => [`${value} ${unit}`, chartLabel]}
                               contentStyle={{
                                 backgroundColor: 'white',
                                 border: '1px solid #e5e7eb',
@@ -245,14 +268,16 @@ const Progress = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-600 mb-2">Sessioni Recenti</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {sessions.slice(0, 4).map((session, sessionIndex) => (
+                        {sessions.slice(-4).map((session, sessionIndex) => (
                           <div key={sessionIndex} className="bg-gray-50 rounded p-2 text-center">
                             <div className="text-xs text-gray-500">
-                              {new Date(session.date).toLocaleDateString('it-IT')}
+                              {session.workoutDate}
                             </div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              {session.sets} × {session.reps}
-                            </div>
+                            {trackingType === 'sets_reps' && (
+                              <div className="text-sm font-semibold text-gray-900">
+                                {session.sets} × {session.reps}
+                              </div>
+                            )}
                             {session.value > 0 && (
                               <div className="text-xs text-gray-600">
                                 {session.value} {unit}

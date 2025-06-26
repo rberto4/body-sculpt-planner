@@ -14,20 +14,31 @@ import tricepsIcon from '@/assets/muscle_images/triceps.png';
 export const useMuscleIcons = () => {
   const getMuscleIcon = (muscleGroup: string): string => {
     const icons: { [key: string]: string } = {
+      'schiena': backIcon,
       'back': backIcon,
+      'bicipiti': bicepsIcon,
       'biceps': bicepsIcon,
+      'polpacci': calfsIcon,
       'calfs': calfsIcon,
+      'petto': chestIcon,
       'chest': chestIcon,
       'core': coreIcon,
+      'addome': coreIcon,
+      'glutei': glutesIcon,
       'glutes': glutesIcon,
+      'femorali': hamstringsIcon,
       'hamstrings': hamstringsIcon,
+      'gambe': legsIcon,
       'legs': legsIcon,
+      'quadricipiti': legsIcon,
+      'spalle': shouldersIcon,
       'shoulders': shouldersIcon,
+      'tricipiti': tricepsIcon,
       'triceps': tricepsIcon,
     };
     
     // Normalize the muscle group name to lowercase for matching
-    const normalizedGroup = muscleGroup.toLowerCase();
+    const normalizedGroup = muscleGroup.toLowerCase().trim();
     return icons[normalizedGroup] || chestIcon;
   };
 

@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
 import { useExercises, useAddExerciseToRoutine } from "@/hooks/useSupabaseQuery";
+import { CreateExerciseDialog } from "./CreateExerciseDialog";
+import { MuscleIcon } from "@/hooks/useMuscleIcons";
 
 interface ExerciseBuilderDialogProps {
   routineId?: string;
@@ -17,7 +19,7 @@ interface ExerciseBuilderDialogProps {
 }
 
 export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExerciseAdded }: ExerciseBuilderDialogProps) => {
-  const { data: exercises = [] } = useExercises();
+  const { data: exercises = [], refetch: refetchExercises } = useExercises();
   const addExerciseMutation = useAddExerciseToRoutine();
   
   const [open, setOpen] = useState(false);
@@ -38,8 +40,13 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
   const [notes, setNotes] = useState("");
 
   const filteredExercises = exercises.filter(exercise => 
-    !existingExercises.some(existing => existing.exercise.id === exercise.id)
+    !existingExercises.some(existing => existing.exercise?.id === exercise.id || existing.exercise_id === exercise.id)
   );
+
+  const handleExerciseCreated = (newExercise: any) => {
+    refetchExercises();
+    setSelectedExercise(newExercise.id);
+  };
 
   const handleAddExercise = async () => {
     if (!selectedExercise || !routineId) return;
@@ -103,9 +110,12 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Exercise Selection */}
+          {/* Exercise Selection with Create Option */}
           <div>
-            <Label className="text-gray-700 dark:text-gray-300">Seleziona Esercizio</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-gray-700 dark:text-gray-300">Seleziona Esercizio</Label>
+              <CreateExerciseDialog onExerciseCreated={handleExerciseCreated} trigger="icon" />
+            </div>
             <Select value={selectedExercise} onValueChange={setSelectedExercise}>
               <SelectTrigger className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Scegli un esercizio..." />
@@ -113,9 +123,12 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
               <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                 {filteredExercises.map((exercise) => (
                   <SelectItem key={exercise.id} value={exercise.id} className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div>
-                      <div className="font-medium">{exercise.name}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">{exercise.muscle_group}</div>
+                    <div className="flex items-center space-x-2">
+                      <MuscleIcon muscleGroup={exercise.muscle_group} className="w-4 h-4" />
+                      <div>
+                        <div className="font-medium">{exercise.name}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{exercise.muscle_group}</div>
+                      </div>
                     </div>
                   </SelectItem>
                 ))}

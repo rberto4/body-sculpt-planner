@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useRoutines } from '../hooks/useSupabaseQuery';
+import { useRoutines, useUpdateRoutine, useUpdateRoutineExercise, useAddExerciseToRoutine, useRemoveExerciseFromRoutine } from '../hooks/useSupabaseQuery';
 import RoutineCard from '../components/routines/RoutineCard';
 import RoutineExerciseList from '../components/routines/RoutineExerciseList';
 import RoutineForm from '../components/routines/RoutineForm';
@@ -21,15 +21,77 @@ export default function RoutineDetail() {
   const [editing, setEditing] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [tab, setTab] = useState('details');
+  const updateRoutineMutation = useUpdateRoutine();
+  const updateRoutineExerciseMutation = useUpdateRoutineExercise();
+  const addExerciseToRoutineMutation = useAddExerciseToRoutine();
+  const removeExerciseFromRoutineMutation = useRemoveExerciseFromRoutine();
 
   if (!routine) {
     return <div className="p-8 text-center text-gray-500">Routine non trovata</div>;
   }
 
-  const handleSave = (data: any) => {
-    setEditing(false);
-    setDialogOpen(false);
-    refetch();
+  const handleSaveRoutine = async (data: any) => {
+    try {
+      // UPDATE ROUTINE
+      await updateRoutineMutation.mutateAsync({
+        id: routine.id,
+        name: data.name,
+        type: data.type,
+        assigned_days: data.assigned_days,
+      });
+      // Gestione esercizi
+      const oldExercises = routine.routine_exercises || [];
+      const newExercises = data.routine_exercises;
+      // Aggiorna o aggiungi esercizi
+      for (let i = 0; i < newExercises.length; i++) {
+        const ex = newExercises[i];
+        const isSetsReps = ex.tracking_type === 'sets_reps';
+        const isDuration = ex.tracking_type === 'duration';
+        const isDistanceDuration = ex.tracking_type === 'distance_duration';
+        const rpeValue = ex.rpe === '' || ex.rpe == null ? null : Number(ex.rpe);
+        const exerciseData = {
+          sets: ex.sets,
+          reps: isSetsReps ? ex.reps : null,
+          weight: isSetsReps ? ex.weight : null,
+          weight_unit: isSetsReps ? ex.weight_unit : null,
+          duration: (isDuration || isDistanceDuration) ? ex.duration : null,
+          duration_unit: (isDuration || isDistanceDuration) ? ex.duration_unit : null,
+          distance: isDistanceDuration ? ex.distance : null,
+          distance_unit: isDistanceDuration ? ex.distance_unit : null,
+          rest_time: ex.rest_time || 60,
+          tracking_type: ex.tracking_type,
+          rpe: rpeValue,
+          mav: ex.mav,
+          warmup: ex.warmup,
+          notes: ex.notes,
+          order_index: i
+        };
+        if (ex.id) {
+          await updateRoutineExerciseMutation.mutateAsync({
+            routineExerciseId: ex.id,
+            exerciseData
+          });
+        } else {
+          await addExerciseToRoutineMutation.mutateAsync({
+            routineId: routine.id,
+            exerciseId: ex.exercise.id,
+            exerciseData
+          });
+        }
+      }
+      // Rimuovi esercizi eliminati
+      const newIds = newExercises.filter(e => e.id).map(e => e.id);
+      for (const oldEx of oldExercises) {
+        if (!newIds.includes(oldEx.id)) {
+          await removeExerciseFromRoutineMutation.mutateAsync(oldEx.id);
+        }
+      }
+      setEditing(false);
+      setDialogOpen(false);
+      refetch();
+    } catch (error) {
+      // Il toast di errore viene già gestito dagli hook
+    }
   };
   const handleDelete = () => {
     setDeleteDialog(false);
@@ -62,13 +124,21 @@ export default function RoutineDetail() {
   const volume = getRoutineVolume(routine);
 
   if (editing) {
+    // Mappa la routine per garantire che ogni esercizio abbia exercise.id
+    const mappedRoutine = {
+      ...routine,
+      routine_exercises: (routine.routine_exercises || []).map((ex: any) => ({
+        ...ex,
+        exercise: ex.exercise && ex.exercise.id ? ex.exercise : { id: ex.exercise_id, ...ex.exercise }
+      }))
+    };
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
         <div className="w-full max-w-3xl mx-auto">
           <RoutineForm
             mode="edit"
-            routine={routine}
-            onSave={handleSave}
+            routine={mappedRoutine}
+            onSave={handleSaveRoutine}
             onCancel={() => setEditing(false)}
           />
         </div>

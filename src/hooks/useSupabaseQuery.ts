@@ -13,6 +13,7 @@ export const useRoutines = () => {
           *,
           routine_exercises (
             id,
+            exercise_id,
             sets,
             reps,
             duration,
@@ -439,6 +440,7 @@ export const useRoutine = (id: string) => {
           *,
           routine_exercises (
             id,
+            exercise_id,
             sets,
             reps,
             duration,

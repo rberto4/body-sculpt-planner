@@ -146,24 +146,12 @@ const Routines = () => {
             notes: ex.notes,
             order_index: i
           };
-          console.log('DEBUG updateRoutineExercise', {
-            routineExerciseId: ex.id,
-            exerciseData
-          });
           if (ex.id) {
             await updateRoutineExerciseMutation.mutateAsync({
               routineExerciseId: ex.id,
               exerciseData
             });
           } else {
-            console.log('DEBUG addExerciseToRoutine', {
-              routineId: editingRoutine.id,
-              exerciseId: ex.exercise.id,
-              exerciseData
-            });
-            Object.entries(exerciseData).forEach(([k, v]) => {
-              console.log('FIELD', k, v, typeof v);
-            });
             await addExerciseToRoutineMutation.mutateAsync({
               routineId: editingRoutine.id,
               exerciseId: ex.exercise.id,
@@ -179,7 +167,7 @@ const Routines = () => {
           }
         }
       } else {
-        // CREAZIONE (già implementata sopra)
+        // CREAZIONE
         const routine = await createRoutineMutation.mutateAsync({
           name: data.name,
           type: data.type,
@@ -208,14 +196,6 @@ const Routines = () => {
             notes: ex.notes,
             order_index: i
           };
-          console.log('DEBUG addExerciseToRoutine', {
-            routineId: routine.id,
-            exerciseId: ex.exercise.id,
-            exerciseData
-          });
-          Object.entries(exerciseData).forEach(([k, v]) => {
-            console.log('FIELD', k, v, typeof v);
-          });
           await addExerciseToRoutineMutation.mutateAsync({
             routineId: routine.id,
             exerciseId: ex.exercise.id,

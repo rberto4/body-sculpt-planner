@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ export const CreateExerciseDialog = ({ onExerciseCreated, trigger = "button" }: 
 
   const muscleGroups = [
     "Petto", "Schiena", "Spalle", "Bicipiti", "Tricipiti", 
-    "Gambe", "Quadricipiti", "Femorali", "Glutei", "Polpacci", "Core"
+    "Gambe", "Quadricipiti", "Femorali", "Glutei", "Polpacci", "Core", "Totalbody"
   ];
 
   const exerciseTypes = [
@@ -56,6 +55,13 @@ export const CreateExerciseDialog = ({ onExerciseCreated, trigger = "button" }: 
     }
   };
 
+  const handleTypeChange = (val: string) => {
+    setType(val);
+    if (val === "Cardio") {
+      setMuscleGroup("Totalbody");
+    }
+  };
+
   const TriggerComponent = trigger === "icon" ? (
     <Button variant="outline" size="sm" className="w-8 h-8 p-0">
       <Dumbbell className="w-3 h-3" />
@@ -63,7 +69,7 @@ export const CreateExerciseDialog = ({ onExerciseCreated, trigger = "button" }: 
   ) : (
     <Button variant="outline" className="border-gray-300 text-gray-700 hover:border-gray-400">
       <Plus className="w-4 h-4 mr-2" />
-      Crea Nuovo Esercizio
+      + Nuovo esercizio
     </Button>
   );
 
@@ -90,7 +96,7 @@ export const CreateExerciseDialog = ({ onExerciseCreated, trigger = "button" }: 
 
           <div>
             <Label className="text-gray-700 dark:text-gray-300">Gruppo Muscolare</Label>
-            <Select value={muscleGroup} onValueChange={setMuscleGroup}>
+            <Select value={muscleGroup} onValueChange={setMuscleGroup} disabled={type === "Cardio"}>
               <SelectTrigger className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Seleziona gruppo muscolare..." />
               </SelectTrigger>
@@ -106,7 +112,7 @@ export const CreateExerciseDialog = ({ onExerciseCreated, trigger = "button" }: 
 
           <div>
             <Label className="text-gray-700 dark:text-gray-300">Tipo di Esercizio</Label>
-            <Select value={type} onValueChange={setType}>
+            <Select value={type} onValueChange={handleTypeChange}>
               <SelectTrigger className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Seleziona tipo..." />
               </SelectTrigger>

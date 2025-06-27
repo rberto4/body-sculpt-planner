@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, Search, Plus, User, Zap, Activity, Target, Shield, Dumbbell } from "lucide-react";
 import { useExercises, useCreateExercise } from "@/hooks/useSupabaseQuery";
+import { MuscleIcon } from "@/hooks/useMuscleIcons";
 
 const Exercises = () => {
   const { data: exercises = [], isLoading } = useExercises();
@@ -211,8 +211,6 @@ const Exercises = () => {
         {/* Exercise Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredExercises.map((exercise) => {
-            const IconComponent = getMuscleGroupIcon(exercise.muscle_group);
-            
             return (
               <Card 
                 key={exercise.id}
@@ -221,8 +219,8 @@ const Exercises = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-lg bg-gray-800 p-2 flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 p-2 flex items-center justify-center">
+                        <MuscleIcon muscleGroup={exercise.muscle_group} className="w-10 h-10 object-contain" />
                       </div>
                       <div>
                         <CardTitle className="text-gray-900 text-lg group-hover:text-gray-700 transition-colors">

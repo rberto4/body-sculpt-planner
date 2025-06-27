@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExerciseBuilderDialog } from "@/components/ExerciseBuilderDialog";
 import { ArrowLeft, Play, Edit, Calendar, Clock, Target, Plus, Trash2, Save, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRoutine, useUpdateRoutineExercise, useRemoveExerciseFromRoutine } from "@/hooks/useSupabaseQuery";
+import { useRoutine, useUpdateRoutineExercise, useRemoveExerciseFromRoutine, useDeleteRoutine } from "@/hooks/useSupabaseQuery";
 import { MuscleIcon } from "@/hooks/useMuscleIcons";
+import { useAuth } from "@/hooks/useAuth";
 
 const RoutineDetail = () => {
   const navigate = useNavigate();
@@ -19,9 +20,12 @@ const RoutineDetail = () => {
   const { data: routine, isLoading, refetch } = useRoutine(id!);
   const updateExerciseMutation = useUpdateRoutineExercise();
   const removeExerciseMutation = useRemoveExerciseFromRoutine();
+  const deleteRoutineMutation = useDeleteRoutine();
+  const { user } = useAuth();
   
   const [editingExercise, setEditingExercise] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -123,6 +127,21 @@ const RoutineDetail = () => {
     }
   };
 
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteRoutineMutation.mutateAsync(routine.id);
+      setDeleteDialogOpen(false);
+      navigate("/routines");
+    } catch (error) {
+      setDeleteDialogOpen(false);
+      // Potresti mostrare un toast di errore qui
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit">
       <div className="container mx-auto max-w-4xl">
@@ -143,11 +162,14 @@ const RoutineDetail = () => {
             <p className="text-gray-600 dark:text-gray-300 mt-1">Dettagli routine ed esercizi</p>
           </div>
           <div className="flex space-x-3">
-            <ExerciseBuilderDialog
-              routineId={routine.id}
-              existingExercises={routine.routine_exercises || []}
-              onExerciseAdded={handleExerciseAdded}
-            />
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/routines/create?edit=${routine.id}`)}
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Modifica
+            </Button>
             <Button 
               onClick={startWorkout}
               disabled={!routine.routine_exercises?.length}
@@ -155,6 +177,14 @@ const RoutineDetail = () => {
             >
               <Play className="w-4 h-4 mr-2" />
               Inizia Allenamento
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleDelete}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Elimina
             </Button>
           </div>
         </div>
@@ -260,7 +290,6 @@ const RoutineDetail = () => {
                                 </Button>
                               </div>
                             </div>
-                            
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               <div>
                                 <Label className="text-sm text-gray-600 dark:text-gray-300">Set</Label>
@@ -271,7 +300,6 @@ const RoutineDetail = () => {
                                   className="bg-white dark:bg-gray-600"
                                 />
                               </div>
-                              
                               {editForm.tracking_type === "sets_reps" ? (
                                 <>
                                   <div>
@@ -293,7 +321,7 @@ const RoutineDetail = () => {
                                     />
                                   </div>
                                 </>
-                              ) : (
+                              ) : editForm.tracking_type === "duration" ? (
                                 <div>
                                   <Label className="text-sm text-gray-600 dark:text-gray-300">Durata (s)</Label>
                                   <Input
@@ -303,8 +331,28 @@ const RoutineDetail = () => {
                                     className="bg-white dark:bg-gray-600"
                                   />
                                 </div>
+                              ) : (
+                                <>
+                                  <div>
+                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Distanza</Label>
+                                    <Input
+                                      type="number"
+                                      value={editForm.distance || ''}
+                                      onChange={(e) => setEditForm({...editForm, distance: parseFloat(e.target.value)})}
+                                      className="bg-white dark:bg-gray-600"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Durata (s)</Label>
+                                    <Input
+                                      type="number"
+                                      value={editForm.duration || ''}
+                                      onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value)})}
+                                      className="bg-white dark:bg-gray-600"
+                                    />
+                                  </div>
+                                </>
                               )}
-                              
                               <div>
                                 <Label className="text-sm text-gray-600 dark:text-gray-300">Riposo (s)</Label>
                                 <Input
@@ -315,7 +363,6 @@ const RoutineDetail = () => {
                                 />
                               </div>
                             </div>
-                            
                             <div>
                               <Label className="text-sm text-gray-600 dark:text-gray-300">Note</Label>
                               <Textarea
@@ -445,18 +492,42 @@ const RoutineDetail = () => {
                       <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <p>Nessun esercizio in questa routine</p>
                     </div>
-                    <ExerciseBuilderDialog
-                      routineId={routine.id}
-                      existingExercises={routine.routine_exercises || []}
-                      onExerciseAdded={handleExerciseAdded}
-                    />
                   </div>
                 )}
+                {/* Tasto aggiungi esercizi sempre in fondo */}
+                <div className="flex justify-center mt-6">
+                  <ExerciseBuilderDialog
+                    routineId={routine.id}
+                    existingExercises={routine.routine_exercises || []}
+                    onExerciseAdded={handleExerciseAdded}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Dialog di conferma eliminazione routine */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Conferma eliminazione</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            Sei sicuro di voler eliminare la routine <span className="font-semibold">{routine.name}</span>?<br />
+            Questa azione non può essere annullata.
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Annulla
+            </Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete}>
+              Elimina
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

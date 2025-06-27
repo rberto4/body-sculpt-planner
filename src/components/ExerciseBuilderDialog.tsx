@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,9 +15,10 @@ interface ExerciseBuilderDialogProps {
   routineId?: string;
   existingExercises?: any[];
   onExerciseAdded?: () => void;
+  onExerciseSelected?: (exercise: any) => void;
 }
 
-export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExerciseAdded }: ExerciseBuilderDialogProps) => {
+export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExerciseAdded, onExerciseSelected }: ExerciseBuilderDialogProps) => {
   const { data: exercises = [], refetch: refetchExercises } = useExercises();
   const addExerciseMutation = useAddExerciseToRoutine();
   
@@ -39,9 +39,11 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
   const [warmup, setWarmup] = useState(false);
   const [notes, setNotes] = useState("");
 
-  const filteredExercises = exercises.filter(exercise => 
-    !existingExercises.some(existing => existing.exercise?.id === exercise.id || existing.exercise_id === exercise.id)
-  );
+  const filteredExercises = routineId
+    ? exercises.filter(exercise =>
+        !existingExercises.some(existing => existing.exercise?.id === exercise.id || existing.exercise_id === exercise.id)
+      )
+    : exercises;
 
   const handleExerciseCreated = (newExercise: any) => {
     refetchExercises();
@@ -49,8 +51,7 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
   };
 
   const handleAddExercise = async () => {
-    if (!selectedExercise || !routineId) return;
-
+    if (!selectedExercise) return;
     const exerciseData = {
       sets: parseInt(sets) || 3,
       reps: trackingType === "sets_reps" ? parseInt(reps) || 12 : undefined,
@@ -68,14 +69,34 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
       notes,
       order_index: existingExercises.length
     };
-
+    if (!routineId && onExerciseSelected) {
+      // In creazione routine: callback e chiudi
+      onExerciseSelected({
+        exercise: exercises.find(e => e.id === selectedExercise),
+        ...exerciseData,
+        id: Math.random().toString(36).substr(2, 9),
+      });
+      setSelectedExercise("");
+      setSets("");
+      setReps("");
+      setDuration("");
+      setDistance("");
+      setRestTime("");
+      setWeight("");
+      setRpe("");
+      setMav(false);
+      setWarmup(false);
+      setNotes("");
+      setOpen(false);
+      return;
+    }
+    if (!routineId) return;
     try {
       await addExerciseMutation.mutateAsync({
         routineId,
         exerciseId: selectedExercise,
         exerciseData
       });
-      
       // Reset form
       setSelectedExercise("");
       setSets("");
@@ -89,7 +110,6 @@ export const ExerciseBuilderDialog = ({ routineId, existingExercises = [], onExe
       setWarmup(false);
       setNotes("");
       setOpen(false);
-      
       onExerciseAdded?.();
     } catch (error) {
       console.error("Error adding exercise:", error);

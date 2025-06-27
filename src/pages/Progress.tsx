@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Calendar, Target, Award, Trophy, Flame } from "lucide-react";
@@ -60,12 +59,14 @@ const Progress = () => {
       if (routineExercise?.tracking_type === 'sets_reps') {
         // For sets_reps, track the weight progression
         const weights = we.weight_used || [];
-        if (weights.length > 0) {
+        if (weights.length > 0 && weights.some(w => w && w > 0)) {
           value = Math.max(...weights.filter(w => w && w > 0)) || 0;
+        } else if (routineExercise?.weight && routineExercise.weight > 0) {
+          value = routineExercise.weight;
         }
         metric = 'weight';
       } else if (routineExercise?.tracking_type === 'duration') {
-        value = we.duration_completed || 0;
+        value = we.duration_completed || routineExercise?.duration || 0;
         metric = 'duration';
       } else if (routineExercise?.tracking_type === 'distance_duration') {
         value = we.distance_completed || routineExercise?.distance || 0;
@@ -228,7 +229,7 @@ const Progress = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {/* Progress Chart */}
-                    {chartData.length > 1 && (
+                    {chartData.length > 0 ? (
                       <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={chartData}>
@@ -262,6 +263,8 @@ const Progress = () => {
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
+                    ) : (
+                      <div className="text-center text-gray-400 py-8">Nessun dato sufficiente per mostrare il grafico</div>
                     )}
 
                     {/* Recent Sessions */}

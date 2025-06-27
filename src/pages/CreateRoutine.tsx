@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Plus, X, Trash2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useCreateRoutine, useRoutine, useUpdateRoutine } from "@/hooks/useSupabaseQuery";
 import { ExerciseBuilderDialog } from "@/components/ExerciseBuilderDialog";
 import { CreateExerciseDialog } from "@/components/CreateExerciseDialog";
 
 const CreateRoutine = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: paramId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryEditId = searchParams.get("edit");
+  const id = paramId || queryEditId;
   const isEdit = !!id;
   
   const { data: existingRoutine } = useRoutine(id || "");
@@ -26,6 +28,7 @@ const CreateRoutine = () => {
   const [customType, setCustomType] = useState("");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [exercises, setExercises] = useState<any[]>([]);
+  const [editExercise, setEditExercise] = useState<any | null>(null);
 
   useEffect(() => {
     if (existingRoutine) {
@@ -123,6 +126,84 @@ const CreateRoutine = () => {
     
     return info;
   };
+
+  // Componente riutilizzabile per la lista esercizi di una routine
+  function RoutineExercisesList({
+    exercises,
+    isEdit,
+    onEdit,
+    onRemove,
+    onAdd,
+  }: {
+    exercises: any[];
+    isEdit: boolean;
+    onEdit: (exercise: any) => void;
+    onRemove: (id: string) => void;
+    onAdd: () => void;
+  }) {
+    return (
+      <div className="space-y-3">
+        <div className="flex justify-end mb-2">
+          <Button variant="outline" size="sm" onClick={onAdd} className="border-gray-300 text-gray-700 hover:border-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Aggiungi esercizio
+          </Button>
+        </div>
+        {exercises.length === 0 && (
+          <div className="text-center py-8 text-gray-500">Nessun esercizio nella routine</div>
+        )}
+        {exercises.map((exercise) => (
+          <div key={exercise.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">{exercise.exercise?.name || 'Esercizio'}</h4>
+                <div className="text-sm text-gray-600 mt-1">
+                  {exercise.sets && <span>{exercise.sets} set</span>}
+                  {exercise.reps && <span> × {exercise.reps} rip</span>}
+                  {exercise.weight > 0 && <span> - {exercise.weight}{exercise.weight_unit || 'kg'}</span>}
+                  {exercise.duration > 0 && <span> - {exercise.duration}{exercise.duration_unit === 'minutes' ? 'min' : 's'}</span>}
+                  {exercise.distance > 0 && <span> - {exercise.distance}{exercise.distance_unit || 'm'}</span>}
+                </div>
+                {(exercise.rpe || exercise.mav || exercise.warmup) && (
+                  <div className="flex gap-2 mt-2">
+                    {exercise.rpe && <Badge variant="secondary" className="text-xs">RPE {exercise.rpe}</Badge>}
+                    {exercise.mav && <Badge variant="secondary" className="text-xs">MAV</Badge>}
+                    {exercise.warmup && <Badge variant="secondary" className="text-xs">Riscaldamento</Badge>}
+                  </div>
+                )}
+              </div>
+              {isEdit && (
+                <div className="flex flex-col gap-1 items-end">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(exercise)}
+                    className="text-gray-600 hover:text-gray-900"
+                    title="Modifica esercizio"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.788l-4 1 1-4 14.362-14.3z" />
+                    </svg>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemove(exercise.id)}
+                    className="text-red-600 hover:text-red-700"
+                    title="Elimina esercizio"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
@@ -269,71 +350,47 @@ const CreateRoutine = () => {
               <CardHeader>
                 <CardTitle className="text-gray-900 flex items-center justify-between">
                   Esercizi
-                  <div className="flex space-x-2">
-                    <CreateExerciseDialog />
-                    {(isEdit && id) && (
-                      <ExerciseBuilderDialog
-                        routineId={id}
-                        existingExercises={exercises}
-                        onExerciseAdded={handleExerciseAdded}
-                      />
-                    )}
-                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {exercises.length > 0 ? (
-                  <div className="space-y-3">
-                    {exercises.map((exercise, index) => (
-                      <div 
-                        key={exercise.id}
-                        className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{exercise.exercise?.name || 'Esercizio'}</h4>
-                            <div className="text-sm text-gray-600 mt-1">
-                              {getExerciseDisplayInfo(exercise)}
-                            </div>
-                            {(exercise.rpe || exercise.mav || exercise.warmup) && (
-                              <div className="flex gap-2 mt-2">
-                                {exercise.rpe && <Badge variant="secondary" className="text-xs">RPE {exercise.rpe}</Badge>}
-                                {exercise.mav && <Badge variant="secondary" className="text-xs">MAV</Badge>}
-                                {exercise.warmup && <Badge variant="secondary" className="text-xs">Riscaldamento</Badge>}
-                              </div>
-                            )}
-                          </div>
-                          {isEdit && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeExercise(exercise.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {exercises.length > 0 && (
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                        <div className="text-sm text-gray-600">
-                          Volume calcolato: <span className="font-semibold">{calculateVolume(exercises)}kg</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    {isEdit ? "Aggiungi esercizi a questa routine" : "Gli esercizi possono essere aggiunti dopo aver creato la routine"}
-                  </div>
-                )}
+                <RoutineExercisesList
+                  exercises={exercises}
+                  isEdit={isEdit}
+                  onEdit={setEditExercise}
+                  onRemove={removeExercise}
+                  onAdd={() => setEditExercise(null)}
+                />
               </CardContent>
             </Card>
           </div>
         </div>
+
+        {/* Dialog per edit/aggiunta esercizio */}
+        {(editExercise !== undefined) && (
+          <ExerciseBuilderDialog
+            routineId={isEdit ? id : undefined}
+            existingExercises={editExercise ? exercises.filter(e => e.id !== editExercise.id) : exercises}
+            {...(editExercise
+              ? {
+                  initialExercise: editExercise,
+                  onExerciseAdded: () => {
+                    setEditExercise(undefined);
+                    handleExerciseAdded();
+                  },
+                  onExerciseSelected: (updated) => {
+                    setExercises(prev => prev.map(e => e.id === editExercise.id ? { ...e, ...updated } : e));
+                    setEditExercise(undefined);
+                  }
+                }
+              : {
+                  onExerciseAdded: handleExerciseAdded,
+                  onExerciseSelected: (exercise) => {
+                    setExercises(prev => [...prev, { ...exercise, id: Math.random().toString(36).substr(2, 9) }]);
+                    setEditExercise(undefined);
+                  }
+                })}
+          />
+        )}
 
         {/* Action Buttons */}
         <div className="flex space-x-4 pt-6">

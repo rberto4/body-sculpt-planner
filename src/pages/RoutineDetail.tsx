@@ -1,535 +1,210 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExerciseBuilderDialog } from "@/components/ExerciseBuilderDialog";
-import { ArrowLeft, Play, Edit, Calendar, Clock, Target, Plus, Trash2, Save, X } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useRoutine, useUpdateRoutineExercise, useRemoveExerciseFromRoutine, useDeleteRoutine } from "@/hooks/useSupabaseQuery";
-import { MuscleIcon } from "@/hooks/useMuscleIcons";
-import { useAuth } from "@/hooks/useAuth";
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useRoutines } from '../hooks/useSupabaseQuery';
+import RoutineCard from '../components/routines/RoutineCard';
+import RoutineExerciseList from '../components/routines/RoutineExerciseList';
+import RoutineForm from '../components/routines/RoutineForm';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { Card, CardHeader, CardContent, CardTitle } from '../components/ui/card';
+import { ArrowLeft, Pencil, Trash, Play } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
+import { Badge } from '../components/ui/badge';
 
-const RoutineDetail = () => {
-  const navigate = useNavigate();
+export default function RoutineDetail() {
   const { id } = useParams();
-  const { data: routine, isLoading, refetch } = useRoutine(id!);
-  const updateExerciseMutation = useUpdateRoutineExercise();
-  const removeExerciseMutation = useRemoveExerciseFromRoutine();
-  const deleteRoutineMutation = useDeleteRoutine();
-  const { user } = useAuth();
-  
-  const [editingExercise, setEditingExercise] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<any>({});
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
-        <div className="text-xl text-gray-600 dark:text-gray-300">Caricamento routine...</div>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+  const { data: routines = [], refetch } = useRoutines();
+  const routine = routines.find((r: any) => r.id === id);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [tab, setTab] = useState('details');
 
   if (!routine) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Routine non trovata</h1>
-            <Button onClick={() => navigate("/routines")} className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-              Torna alle Routine
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="p-8 text-center text-gray-500">Routine non trovata</div>;
   }
 
-  const calculateVolume = (exercises: any[]) => {
-    if (!exercises?.length) return 0;
-    const totalVolume = exercises.reduce((acc, ex) => {
-      const weight = ex.weight || 0;
-      const sets = ex.sets || 0;
-      const reps = ex.reps || 0;
-      return acc + (weight * sets * reps);
-    }, 0);
-    return totalVolume;
+  const handleSave = (data: any) => {
+    setEditing(false);
+    setDialogOpen(false);
+    refetch();
   };
-
-  const getVolumeCategory = (volume: number) => {
-    if (volume < 1000) return { label: "Low", color: "bg-green-500" };
-    if (volume < 3000) return { label: "Medium", color: "bg-yellow-500" };
-    return { label: "High", color: "bg-red-500" };
-  };
-
-  const volume = calculateVolume(routine.routine_exercises);
-  const volumeInfo = getVolumeCategory(volume);
-
-  const startWorkout = () => {
-    localStorage.setItem('activeWorkout', JSON.stringify(routine));
-    navigate("/training", { state: { routine } });
-  };
-
-  const handleExerciseAdded = () => {
+  const handleDelete = () => {
+    setDeleteDialog(false);
+    navigate('/routines');
     refetch();
   };
 
-  const startEditingExercise = (routineExercise: any) => {
-    setEditingExercise(routineExercise.id);
-    setEditForm({
-      sets: routineExercise.sets,
-      reps: routineExercise.reps,
-      duration: routineExercise.duration,
-      rest_time: routineExercise.rest_time,
-      weight: routineExercise.weight,
-      tracking_type: routineExercise.tracking_type,
-      notes: routineExercise.notes,
-      rpe: routineExercise.rpe,
-      warmup: routineExercise.warmup,
-      mav: routineExercise.mav
-    });
-  };
-
-  const saveExerciseChanges = async () => {
-    if (!editingExercise) return;
-    
-    try {
-      await updateExerciseMutation.mutateAsync({
-        routineExerciseId: editingExercise,
-        exerciseData: editForm
-      });
-      setEditingExercise(null);
-      setEditForm({});
-      refetch();
-    } catch (error) {
-      console.error("Error updating exercise:", error);
-    }
-  };
-
-  const cancelEditing = () => {
-    setEditingExercise(null);
-    setEditForm({});
-  };
-
-  const removeExercise = async (routineExerciseId: string, exerciseName: string) => {
-    if (window.confirm(`Sei sicuro di voler rimuovere "${exerciseName}" da questa routine?`)) {
-      try {
-        await removeExerciseMutation.mutateAsync(routineExerciseId);
-        refetch();
-      } catch (error) {
-        console.error("Error removing exercise:", error);
+  // Calcolo volume dettagliato
+  const getRoutineVolume = (routine: any) => {
+    let totalKg = 0;
+    let totalSets = 0;
+    let totalDuration = 0;
+    let totalDistance = 0;
+    if (!routine.routine_exercises) return { totalKg, totalSets, totalDuration, totalDistance };
+    for (const ex of routine.routine_exercises) {
+      if (ex.tracking_type === "sets_reps") {
+        totalSets += Number(ex.sets) || 0;
+        totalKg += (Number(ex.sets) || 0) * (Number(ex.reps) || 0) * (Number(ex.weight) || 0);
+      } else if (ex.tracking_type === "duration") {
+        totalDuration += (Number(ex.sets) || 1) * (Number(ex.duration) || 0);
+        totalSets += Number(ex.sets) || 1;
+      } else if (ex.tracking_type === "distance_duration") {
+        totalDuration += (Number(ex.sets) || 1) * (Number(ex.duration) || 0);
+        totalDistance += (Number(ex.sets) || 1) * (Number(ex.distance) || 0);
+        totalSets += Number(ex.sets) || 1;
       }
     }
+    return { totalKg, totalSets, totalDuration, totalDistance };
   };
+  const volume = getRoutineVolume(routine);
 
-  const handleDelete = () => {
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await deleteRoutineMutation.mutateAsync(routine.id);
-      setDeleteDialogOpen(false);
-      navigate("/routines");
-    } catch (error) {
-      setDeleteDialogOpen(false);
-      // Potresti mostrare un toast di errore qui
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/routines")}
-            className="mr-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Indietro
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {routine.name}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">Dettagli routine ed esercizi</p>
-          </div>
-          <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/routines/create?edit=${routine.id}`)}
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Modifica
-            </Button>
-            <Button 
-              onClick={startWorkout}
-              disabled={!routine.routine_exercises?.length}
-              className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 font-semibold"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Inizia Allenamento
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleDelete}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Elimina
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Routine Info */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white font-outfit">Info Routine</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Tipo</span>
-                  <Badge variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                    {routine.type}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Stato</span>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${routine.is_assigned ? 'bg-green-500' : 'bg-gray-400'}`} />
-                    <span className="text-gray-900 dark:text-white">
-                      {routine.is_assigned ? 'Assegnata' : 'Non Assegnata'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Volume</span>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${volumeInfo.color}`} />
-                    <span className="text-gray-900 dark:text-white">{volumeInfo.label}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">({volume}kg)</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Esercizi</span>
-                  <span className="text-gray-900 dark:text-white">{routine.routine_exercises?.length || 0}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Assigned Days */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white font-outfit">Giorni Assegnati</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {routine.assigned_days?.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {routine.assigned_days.map((day: string) => (
-                      <Badge key={day} variant="default" className="bg-gray-900 text-white dark:bg-white dark:text-gray-900">
-                        {day}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Nessun giorno assegnato</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Exercise List */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white font-outfit">Esercizi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {routine.routine_exercises?.length > 0 ? (
-                  <div className="space-y-4">
-                    {routine.routine_exercises
-                      .sort((a: any, b: any) => a.order_index - b.order_index)
-                      .map((routineExercise: any, index: number) => (
-                      <div 
-                        key={routineExercise.id}
-                        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
-                      >
-                        {editingExercise === routineExercise.id ? (
-                          /* Edit Mode */
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-gray-900 dark:text-white">{routineExercise.exercise.name}</h3>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={saveExerciseChanges}
-                                  disabled={updateExerciseMutation.isPending}
-                                >
-                                  <Save className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={cancelEditing}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                              <div>
-                                <Label className="text-sm text-gray-600 dark:text-gray-300">Set</Label>
-                                <Input
-                                  type="number"
-                                  value={editForm.sets || ''}
-                                  onChange={(e) => setEditForm({...editForm, sets: parseInt(e.target.value)})}
-                                  className="bg-white dark:bg-gray-600"
-                                />
-                              </div>
-                              {editForm.tracking_type === "sets_reps" ? (
-                                <>
-                                  <div>
-                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Rip</Label>
-                                    <Input
-                                      type="number"
-                                      value={editForm.reps || ''}
-                                      onChange={(e) => setEditForm({...editForm, reps: parseInt(e.target.value)})}
-                                      className="bg-white dark:bg-gray-600"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Carico (kg)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editForm.weight || ''}
-                                      onChange={(e) => setEditForm({...editForm, weight: parseFloat(e.target.value)})}
-                                      className="bg-white dark:bg-gray-600"
-                                    />
-                                  </div>
-                                </>
-                              ) : editForm.tracking_type === "duration" ? (
-                                <div>
-                                  <Label className="text-sm text-gray-600 dark:text-gray-300">Durata (s)</Label>
-                                  <Input
-                                    type="number"
-                                    value={editForm.duration || ''}
-                                    onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value)})}
-                                    className="bg-white dark:bg-gray-600"
-                                  />
-                                </div>
-                              ) : (
-                                <>
-                                  <div>
-                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Distanza</Label>
-                                    <Input
-                                      type="number"
-                                      value={editForm.distance || ''}
-                                      onChange={(e) => setEditForm({...editForm, distance: parseFloat(e.target.value)})}
-                                      className="bg-white dark:bg-gray-600"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label className="text-sm text-gray-600 dark:text-gray-300">Durata (s)</Label>
-                                    <Input
-                                      type="number"
-                                      value={editForm.duration || ''}
-                                      onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value)})}
-                                      className="bg-white dark:bg-gray-600"
-                                    />
-                                  </div>
-                                </>
-                              )}
-                              <div>
-                                <Label className="text-sm text-gray-600 dark:text-gray-300">Riposo (s)</Label>
-                                <Input
-                                  type="number"
-                                  value={editForm.rest_time || ''}
-                                  onChange={(e) => setEditForm({...editForm, rest_time: parseInt(e.target.value)})}
-                                  className="bg-white dark:bg-gray-600"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label className="text-sm text-gray-600 dark:text-gray-300">Note</Label>
-                              <Textarea
-                                value={editForm.notes || ''}
-                                onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
-                                className="bg-white dark:bg-gray-600"
-                                rows={2}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          /* View Mode */
-                          <>
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center space-x-3">
-                                <MuscleIcon 
-                                  muscleGroup={routineExercise.exercise.muscle_group} 
-                                  className="w-8 h-8"
-                                />
-                                <div>
-                                  <h3 className="font-semibold text-gray-900 dark:text-white">{routineExercise.exercise.name}</h3>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center space-x-2">
-                                    <span>Esercizio {index + 1}</span>
-                                    {routineExercise.warmup && <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">Riscaldamento</Badge>}
-                                    {routineExercise.mav && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800">MAV</Badge>}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="secondary" className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                                  {routineExercise.tracking_type === "sets_reps" ? "Set & Rip" : 
-                                   routineExercise.tracking_type === "duration" ? "Durata" : "Distanza"}
-                                </Badge>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => startEditingExercise(routineExercise)}
-                                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeExercise(routineExercise.id, routineExercise.exercise.name)}
-                                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                              <div className="text-center">
-                                <div className="text-sm text-gray-500 dark:text-gray-400">Set</div>
-                                <div className="font-semibold text-gray-900 dark:text-white">{routineExercise.sets}</div>
-                              </div>
-                              
-                              {routineExercise.tracking_type === "sets_reps" ? (
-                                <>
-                                  <div className="text-center">
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Rip</div>
-                                    <div className="font-semibold text-gray-900 dark:text-white">{routineExercise.reps}</div>
-                                  </div>
-                                  {routineExercise.weight && (
-                                    <div className="text-center">
-                                      <div className="text-sm text-gray-500 dark:text-gray-400">Carico</div>
-                                      <div className="font-semibold text-gray-900 dark:text-white">
-                                        {routineExercise.weight}{routineExercise.weight_unit}
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              ) : routineExercise.tracking_type === "duration" ? (
-                                <div className="text-center">
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">Durata</div>
-                                  <div className="font-semibold text-gray-900 dark:text-white">
-                                    {routineExercise.duration}{routineExercise.duration_unit === 'minutes' ? 'min' : 's'}
-                                  </div>
-                                </div>
-                              ) : (
-                                <>
-                                  <div className="text-center">
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Distanza</div>
-                                    <div className="font-semibold text-gray-900 dark:text-white">
-                                      {routineExercise.distance}{routineExercise.distance_unit}
-                                    </div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Durata</div>
-                                    <div className="font-semibold text-gray-900 dark:text-white">
-                                      {routineExercise.duration}{routineExercise.duration_unit === 'minutes' ? 'min' : 's'}
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                              
-                              <div className="text-center">
-                                <div className="text-sm text-gray-500 dark:text-gray-400">Riposo</div>
-                                <div className="font-semibold text-gray-900 dark:text-white">{routineExercise.rest_time}s</div>
-                              </div>
-                            </div>
-
-                            {(routineExercise.rpe || routineExercise.notes) && (
-                              <div className="space-y-1">
-                                {routineExercise.rpe && (
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    🎯 RPE: {routineExercise.rpe}/10
-                                  </div>
-                                )}
-                                {routineExercise.notes && (
-                                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                    📝 {routineExercise.notes}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-gray-500 dark:text-gray-400 mb-4">
-                      <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>Nessun esercizio in questa routine</p>
-                    </div>
-                  </div>
-                )}
-                {/* Tasto aggiungi esercizi sempre in fondo */}
-                <div className="flex justify-center mt-6">
-                  <ExerciseBuilderDialog
-                    routineId={routine.id}
-                    existingExercises={routine.routine_exercises || []}
-                    onExerciseAdded={handleExerciseAdded}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+  if (editing) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
+        <div className="w-full max-w-3xl mx-auto">
+          <RoutineForm
+            mode="edit"
+            routine={routine}
+            onSave={handleSave}
+            onCancel={() => setEditing(false)}
+          />
         </div>
       </div>
+    );
+  }
 
-      {/* Dialog di conferma eliminazione routine */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Conferma eliminazione</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            Sei sicuro di voler eliminare la routine <span className="font-semibold">{routine.name}</span>?<br />
-            Questa azione non può essere annullata.
+  return (
+    <div className="min-h-screen bg-white text-gray-900 p-4 font-outfit">
+      <div className="container mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="flex items-center mb-8 gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/routines')} className="mr-2">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-3xl font-bold flex-1 truncate">{routine.name}</h1>
+          <div className="flex gap-2">
+            <Button size="icon" variant="ghost" title="Inizia" onClick={() => {/* implementa start */}}><Play className="w-5 h-5" /></Button>
+            <Button size="icon" variant="ghost" title="Modifica" onClick={() => setEditing(true)}><Pencil className="w-5 h-5" /></Button>
+            <Button size="icon" variant="ghost" title="Elimina" onClick={() => setDeleteDialog(true)}><Trash className="w-5 h-5 text-red-500" /></Button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Annulla
-            </Button>
-            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete}>
-              Elimina
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+        {/* Tabs */}
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="details">Dettagli</TabsTrigger>
+            <TabsTrigger value="exercises">Esercizi</TabsTrigger>
+          </TabsList>
+          <TabsContent value="details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Card Dettagli routine */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dettagli routine</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div><span className="font-semibold">Tipo:</span> {routine.type}</div>
+                </CardContent>
+              </Card>
+              {/* Card Giorni assegnati */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Giorni assegnati</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {routine.assigned_days && routine.assigned_days.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {routine.assigned_days.map((day: string) => (
+                        <Badge key={day} variant="secondary">{day}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-400">Nessun giorno assegnato</div>
+                  )}
+                </CardContent>
+              </Card>
+              {/* Card Volume */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Volume totale</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-6">
+                  <div><span className="font-semibold">Kg totali:</span> {volume.totalKg}</div>
+                  <div><span className="font-semibold">Distanza totale:</span> {volume.totalDistance} m</div>
+                  <div><span className="font-semibold">Tempo totale:</span> {volume.totalDuration} s</div>
+                  <div><span className="font-semibold">Set totali:</span> {volume.totalSets}</div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="exercises">
+            <Card>
+              <CardHeader>
+                <CardTitle>Esercizi</CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Serie</TableHead>
+                      <TableHead>Ripetizioni</TableHead>
+                      <TableHead>Carico</TableHead>
+                      <TableHead>Udm</TableHead>
+                      <TableHead>Durata</TableHead>
+                      <TableHead>Distanza</TableHead>
+                      <TableHead>RPE</TableHead>
+                      <TableHead>MAV</TableHead>
+                      <TableHead>Warmup</TableHead>
+                      <TableHead>Note</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {routine.routine_exercises && routine.routine_exercises.length > 0 ? (
+                      routine.routine_exercises.map((ex: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell>{ex.exercise?.name}</TableCell>
+                          <TableCell>{ex.tracking_type}</TableCell>
+                          <TableCell>{ex.sets}</TableCell>
+                          <TableCell>{ex.reps ?? '-'}</TableCell>
+                          <TableCell>{ex.weight ?? '-'}</TableCell>
+                          <TableCell>{ex.weight_unit ?? '-'}</TableCell>
+                          <TableCell>{ex.duration ?? '-'}</TableCell>
+                          <TableCell>{ex.distance ?? '-'}</TableCell>
+                          <TableCell>{ex.rpe ?? '-'}</TableCell>
+                          <TableCell>{ex.mav ? <Badge variant="secondary">MAV</Badge> : '-'}</TableCell>
+                          <TableCell>{ex.warmup ? <Badge variant="secondary">Warmup</Badge> : '-'}</TableCell>
+                          <TableCell>{ex.notes ?? '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={12} className="text-center text-gray-400">Nessun esercizio nella routine</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        {/* Dialog delete */}
+        <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Elimina routine</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">Sei sicuro di voler eliminare la routine <b>{routine.name}</b>? Questa azione non è reversibile.</div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteDialog(false)}>Annulla</Button>
+              <Button variant="destructive" onClick={handleDelete}>Elimina</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
-};
-
-export default RoutineDetail;
+}

@@ -40,49 +40,135 @@ const Progress = () => {
     }
   }
 
-  // Group workouts by exercise for progress tracking
+  // Raggruppa per esercizio e data
   const exerciseProgress: { [key: string]: any[] } = {};
-  
-  completedWorkouts.forEach(workout => {
-    workout.workout_exercises?.forEach((we: any) => {
-      const exerciseName = we.exercise?.name || 'Unknown';
-      const routineExercise = we.routine_exercise;
-      
-      if (!exerciseProgress[exerciseName]) {
-        exerciseProgress[exerciseName] = [];
-      }
-      
-      // Determine what to track based on exercise type
-      let value = 0;
-      let metric = 'reps';
-      
-      if (routineExercise?.tracking_type === 'sets_reps') {
-        // For sets_reps, track the weight progression
-        const weights = we.weight_used || [];
-        if (weights.length > 0 && weights.some(w => w && w > 0)) {
-          value = Math.max(...weights.filter(w => w && w > 0)) || 0;
-        } else if (routineExercise?.weight && routineExercise.weight > 0) {
-          value = routineExercise.weight;
-        }
-        metric = 'weight';
-      } else if (routineExercise?.tracking_type === 'duration') {
-        value = we.duration_completed || routineExercise?.duration || 0;
-        metric = 'duration';
-      } else if (routineExercise?.tracking_type === 'distance_duration') {
-        value = we.distance_completed || routineExercise?.distance || 0;
-        metric = 'distance';
-      }
-      
-      exerciseProgress[exerciseName].push({
-        date: workout.completed_at,
-        value: value,
-        metric: metric,
-        sets: we.sets_completed,
-        reps: we.reps_completed?.[0] || 0,
-        completed: we.is_completed,
-        workoutDate: new Date(workout.completed_at).toLocaleDateString('it-IT'),
-        routineExercise: routineExercise
+  const exerciseSessionMap: { [key: string]: { [date: string]: any } } = {};
+  console.log('DEBUG ALL completedWorkouts', completedWorkouts);
+  completedWorkouts.forEach(w => {
+    if (w.workout_exercises && w.workout_exercises.length > 0) {
+      console.log('DEBUG workout_exercises', w.workout_exercises);
+      console.log('DEBUG primo workout_exercise', w.workout_exercises[0]);
+      Object.entries(w.workout_exercises[0]).forEach(([k, v]) => {
+        console.log('KEY', k, v);
       });
+    }
+    w.workout_exercises?.forEach((we: any) => {
+      const exerciseName = we.exercise?.name || 'Unknown';
+      // Determina il tipo di tracking
+      let trackingType = 'sets_reps';
+      if (we.routine_exercise && we.routine_exercise.tracking_type) {
+        trackingType = we.routine_exercise.tracking_type;
+      } else if (Array.isArray(we.weight_used) && Array.isArray(we.reps_completed)) {
+        trackingType = 'sets_reps';
+      } else if (we.duration_completed !== null) {
+        trackingType = 'duration';
+      } else if (we.distance_completed !== null) {
+        trackingType = 'distance_duration';
+      }
+      const dateKey = new Date(w.completed_at).toISOString().slice(0, 10);
+      if (!exerciseProgress[exerciseName]) exerciseProgress[exerciseName] = [];
+      if (!exerciseSessionMap[exerciseName]) exerciseSessionMap[exerciseName] = {};
+      if (trackingType === 'sets_reps') {
+        const weights = Array.isArray(we.weight_used) ? we.weight_used.map(w => Number(w) || 0) : [];
+        const repsArr = Array.isArray(we.reps_completed) ? we.reps_completed.map(r => Number(r) || 0) : [];
+        if (weights.length > 0 && weights.some(w => w > 0)) {
+          // Per il grafico: ogni serie è un punto
+          weights.forEach((wgt, idx) => {
+            exerciseProgress[exerciseName].push({
+              date: w.completed_at,
+              value: wgt,
+              metric: 'weight',
+              sets: we.sets_completed,
+              reps: repsArr[idx] || 0,
+              completed: w.is_completed,
+              workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+              routineExercise: we.routine_exercise,
+              allWeights: weights
+            });
+          });
+          // Per le sessioni recenti: raggruppa per data
+          if (!exerciseSessionMap[exerciseName][dateKey]) {
+            exerciseSessionMap[exerciseName][dateKey] = {
+              date: w.completed_at,
+              sets: we.sets_completed,
+              reps: repsArr[0] || 0,
+              workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+              allWeights: weights,
+              metric: 'weight',
+              routineExercise: we.routine_exercise
+            };
+          }
+        } else if (we.routine_exercise?.weight && we.routine_exercise.weight > 0) {
+          exerciseProgress[exerciseName].push({
+            date: w.completed_at,
+            value: we.routine_exercise.weight,
+            metric: 'weight',
+            sets: we.sets_completed,
+            reps: repsArr[0] || 0,
+            completed: w.is_completed,
+            workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+            routineExercise: we.routine_exercise,
+            allWeights: [we.routine_exercise.weight]
+          });
+          if (!exerciseSessionMap[exerciseName][dateKey]) {
+            exerciseSessionMap[exerciseName][dateKey] = {
+              date: w.completed_at,
+              sets: we.sets_completed,
+              reps: repsArr[0] || 0,
+              workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+              allWeights: [we.routine_exercise.weight],
+              metric: 'weight',
+              routineExercise: we.routine_exercise
+            };
+          }
+        }
+      } else if (trackingType === 'duration') {
+        const duration = we.duration_completed || 0;
+        exerciseProgress[exerciseName].push({
+          date: w.completed_at,
+          value: duration,
+          metric: 'duration',
+          sets: we.sets_completed,
+          reps: 0,
+          completed: w.is_completed,
+          workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+          routineExercise: we.routine_exercise
+        });
+        if (!exerciseSessionMap[exerciseName][dateKey]) {
+          exerciseSessionMap[exerciseName][dateKey] = {
+            date: w.completed_at,
+            sets: we.sets_completed,
+            reps: 0,
+            workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+            allWeights: [duration],
+            metric: 'duration',
+            routineExercise: we.routine_exercise
+          };
+        }
+      } else if (trackingType === 'distance_duration') {
+        const distance = we.distance_completed || 0;
+        exerciseProgress[exerciseName].push({
+          date: w.completed_at,
+          value: distance,
+          metric: 'distance',
+          sets: we.sets_completed,
+          reps: 0,
+          completed: w.is_completed,
+          workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+          routineExercise: we.routine_exercise
+        });
+        if (!exerciseSessionMap[exerciseName][dateKey]) {
+          exerciseSessionMap[exerciseName][dateKey] = {
+            date: w.completed_at,
+            sets: we.sets_completed,
+            reps: 0,
+            workoutDate: new Date(w.completed_at).toLocaleDateString('it-IT'),
+            allWeights: [distance],
+            metric: 'distance',
+            routineExercise: we.routine_exercise
+          };
+        }
+      }
     });
   });
 
@@ -182,6 +268,7 @@ const Progress = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Progresso Esercizi</h2>
           
           {Object.entries(exerciseProgress).slice(0, 8).map(([exerciseName, sessions], index) => {
+            console.log('DEBUG', {exerciseName, sessions, sessionMap: exerciseSessionMap[exerciseName]});
             const progress = getProgressIndicator(sessions);
             const chartData = prepareChartData(sessions);
             const latestSession = sessions[sessions.length - 1];
@@ -244,8 +331,17 @@ const Progress = () => {
                               fontSize={12}
                             />
                             <Tooltip 
-                              labelFormatter={(value) => `Sessione ${value}`}
-                              formatter={(value: any) => [`${value} ${unit}`, chartLabel]}
+                              labelFormatter={(_, payload) => {
+                                if (payload && payload.length > 0) {
+                                  const serie = payload[0].payload.session;
+                                  const data = payload[0].payload.date;
+                                  return `Serie ${serie} della sessione del ${data}`;
+                                }
+                                return '';
+                              }}
+                              formatter={(value: any) => [
+                                <span style={{fontWeight: 'bold'}}>{value} {unit}</span>
+                              ]}
                               contentStyle={{
                                 backgroundColor: 'white',
                                 border: '1px solid #e5e7eb',
@@ -271,23 +367,26 @@ const Progress = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-600 mb-2">Sessioni Recenti</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {sessions.slice(-4).map((session, sessionIndex) => (
-                          <div key={sessionIndex} className="bg-gray-50 rounded p-2 text-center">
-                            <div className="text-xs text-gray-500">
-                              {session.workoutDate}
+                        {Object.values(exerciseSessionMap[exerciseName])
+                          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                          .slice(-4)
+                          .map((session, sessionIndex) => (
+                            <div key={sessionIndex} className="bg-gray-50 rounded p-2 text-center">
+                              <div className="text-xs text-gray-500">
+                                {session.workoutDate}
+                              </div>
+                              {trackingType === 'sets_reps' && (
+                                <div className="text-sm font-semibold text-gray-900">
+                                  {session.sets} × {session.reps}
+                                </div>
+                              )}
+                              {session.allWeights && session.allWeights.length > 0 && (
+                                <div className="text-xs text-gray-600">
+                                  {session.allWeights.filter(w => w > 0).join('/') + ' ' + unit}
+                                </div>
+                              )}
                             </div>
-                            {trackingType === 'sets_reps' && (
-                              <div className="text-sm font-semibold text-gray-900">
-                                {session.sets} × {session.reps}
-                              </div>
-                            )}
-                            {session.value > 0 && (
-                              <div className="text-xs text-gray-600">
-                                {session.value} {unit}
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </div>
                   </div>

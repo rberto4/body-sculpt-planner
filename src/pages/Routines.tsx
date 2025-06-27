@@ -1,15 +1,17 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, Target, Play, Edit, Trash2, Dumbbell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useRoutines, useDeleteRoutine } from "@/hooks/useSupabaseQuery";
+import { useRoutines, useDeleteRoutine, useCreateRoutine, useAddExerciseToRoutine, useUpdateRoutine, useUpdateRoutineExercise, useRemoveExerciseFromRoutine } from "@/hooks/useSupabaseQuery";
 import { useToast } from "@/hooks/use-toast";
 import { MuscleIcon } from "@/hooks/useMuscleIcons";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
+import RoutineCard from '../components/routines/RoutineCard';
+import RoutineForm from '../components/routines/RoutineForm';
 
 const Routines = () => {
   const navigate = useNavigate();
@@ -20,7 +22,14 @@ const Routines = () => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [routineToDelete, setRoutineToDelete] = useState<{id: string, name: string} | null>(null);
+  const [routineToDelete, setRoutineToDelete] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRoutine, setEditingRoutine] = useState<any>(null);
+  const createRoutineMutation = useCreateRoutine();
+  const addExerciseToRoutineMutation = useAddExerciseToRoutine();
+  const updateRoutineMutation = useUpdateRoutine();
+  const updateRoutineExerciseMutation = useUpdateRoutineExercise();
+  const removeExerciseFromRoutineMutation = useRemoveExerciseFromRoutine();
 
   // Ordina routine: prima quelle assegnate, poi per giorno
   const assignedDaysOrder = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
@@ -100,10 +109,211 @@ const Routines = () => {
     return { totalKg, totalSets, totalDuration, totalDistance };
   }
 
+  const handleSaveRoutine = async (data: any) => {
+    try {
+      if (editingRoutine) {
+        // MODIFICA ROUTINE
+        await updateRoutineMutation.mutateAsync({
+          id: editingRoutine.id,
+          name: data.name,
+          type: data.type,
+          assigned_days: data.assigned_days,
+        });
+        // Gestione esercizi
+        const oldExercises = editingRoutine.routine_exercises || [];
+        const newExercises = data.routine_exercises;
+        // Aggiorna o aggiungi esercizi
+        for (let i = 0; i < newExercises.length; i++) {
+          const ex = newExercises[i];
+          const isSetsReps = ex.tracking_type === 'sets_reps';
+          const isDuration = ex.tracking_type === 'duration';
+          const isDistanceDuration = ex.tracking_type === 'distance_duration';
+          const rpeValue = ex.rpe === '' || ex.rpe == null ? null : Number(ex.rpe);
+          const exerciseData = {
+            sets: ex.sets,
+            reps: isSetsReps ? ex.reps : null,
+            weight: isSetsReps ? ex.weight : null,
+            weight_unit: isSetsReps ? ex.weight_unit : null,
+            duration: (isDuration || isDistanceDuration) ? ex.duration : null,
+            duration_unit: (isDuration || isDistanceDuration) ? ex.duration_unit : null,
+            distance: isDistanceDuration ? ex.distance : null,
+            distance_unit: isDistanceDuration ? ex.distance_unit : null,
+            rest_time: ex.rest_time || 60,
+            tracking_type: ex.tracking_type,
+            rpe: rpeValue,
+            mav: ex.mav,
+            warmup: ex.warmup,
+            notes: ex.notes,
+            order_index: i
+          };
+          console.log('DEBUG updateRoutineExercise', {
+            routineExerciseId: ex.id,
+            exerciseData
+          });
+          if (ex.id) {
+            await updateRoutineExerciseMutation.mutateAsync({
+              routineExerciseId: ex.id,
+              exerciseData
+            });
+          } else {
+            console.log('DEBUG addExerciseToRoutine', {
+              routineId: editingRoutine.id,
+              exerciseId: ex.exercise.id,
+              exerciseData
+            });
+            Object.entries(exerciseData).forEach(([k, v]) => {
+              console.log('FIELD', k, v, typeof v);
+            });
+            await addExerciseToRoutineMutation.mutateAsync({
+              routineId: editingRoutine.id,
+              exerciseId: ex.exercise.id,
+              exerciseData
+            });
+          }
+        }
+        // Rimuovi esercizi eliminati
+        const newIds = newExercises.filter(e => e.id).map(e => e.id);
+        for (const oldEx of oldExercises) {
+          if (!newIds.includes(oldEx.id)) {
+            await removeExerciseFromRoutineMutation.mutateAsync(oldEx.id);
+          }
+        }
+      } else {
+        // CREAZIONE (già implementata sopra)
+        const routine = await createRoutineMutation.mutateAsync({
+          name: data.name,
+          type: data.type,
+          assigned_days: data.assigned_days,
+        });
+        for (let i = 0; i < data.routine_exercises.length; i++) {
+          const ex = data.routine_exercises[i];
+          const isSetsReps = ex.tracking_type === 'sets_reps';
+          const isDuration = ex.tracking_type === 'duration';
+          const isDistanceDuration = ex.tracking_type === 'distance_duration';
+          const rpeValue = ex.rpe === '' || ex.rpe == null ? null : Number(ex.rpe);
+          const exerciseData = {
+            sets: ex.sets,
+            reps: isSetsReps ? ex.reps : null,
+            weight: isSetsReps ? ex.weight : null,
+            weight_unit: isSetsReps ? ex.weight_unit : null,
+            duration: (isDuration || isDistanceDuration) ? ex.duration : null,
+            duration_unit: (isDuration || isDistanceDuration) ? ex.duration_unit : null,
+            distance: isDistanceDuration ? ex.distance : null,
+            distance_unit: isDistanceDuration ? ex.distance_unit : null,
+            rest_time: ex.rest_time || 60,
+            tracking_type: ex.tracking_type,
+            rpe: rpeValue,
+            mav: ex.mav,
+            warmup: ex.warmup,
+            notes: ex.notes,
+            order_index: i
+          };
+          console.log('DEBUG addExerciseToRoutine', {
+            routineId: routine.id,
+            exerciseId: ex.exercise.id,
+            exerciseData
+          });
+          Object.entries(exerciseData).forEach(([k, v]) => {
+            console.log('FIELD', k, v, typeof v);
+          });
+          await addExerciseToRoutineMutation.mutateAsync({
+            routineId: routine.id,
+            exerciseId: ex.exercise.id,
+            exerciseData
+          });
+        }
+      }
+      setDialogOpen(false);
+      setEditingRoutine(null);
+      refetch();
+    } catch (error) {
+      // Il toast di errore viene già gestito dagli hook
+    }
+  };
+
+  const handleDeleteRoutine = async () => {
+    if (!routineToDelete) return;
+    try {
+      await deleteRoutineMutation.mutateAsync(routineToDelete.id);
+      toast({
+        title: "Routine eliminata",
+        description: `La routine "${routineToDelete.name}" è stata eliminata con successo.`,
+      });
+      setRoutineToDelete(null);
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'eliminazione della routine.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
         <div className="text-xl text-gray-600 dark:text-gray-300">Caricamento routine...</div>
+      </div>
+    );
+  }
+
+  // Se non ci sono routine, mostra solo il messaggio centrale
+  if (routines.length === 0) {
+    if (dialogOpen) {
+      return (
+        <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
+          <div className="w-full max-w-3xl mx-auto">
+            <RoutineForm
+              mode="create"
+              onSave={handleSaveRoutine}
+              onCancel={() => { setDialogOpen(false); setEditingRoutine(null); }}
+            />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Le mie Routine</h1>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Gestisci i tuoi programmi di allenamento</p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  setEditingRoutine(null);
+                  setDialogOpen(true);
+                }}
+                className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nuova Routine
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center min-h-[40vh]">
+            <Dumbbell className="w-16 h-16 mb-4 text-gray-300" />
+            <span className="text-gray-400 text-xl">Crea la tua prima routine</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (dialogOpen) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
+        <div className="w-full max-w-3xl mx-auto">
+          <RoutineForm
+            mode={editingRoutine ? 'edit' : 'create'}
+            routine={editingRoutine}
+            onSave={handleSaveRoutine}
+            onCancel={() => { setDialogOpen(false); setEditingRoutine(null); }}
+          />
+        </div>
       </div>
     );
   }
@@ -119,14 +329,10 @@ const Routines = () => {
           </div>
           <div className="flex gap-2">
             <Button 
-              onClick={() => setExportDialogOpen(true)}
-              className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold"
-              variant="outline"
-            >
-              Export PDF
-            </Button>
-            <Button 
-              onClick={() => navigate("/routines/create")}
+              onClick={() => {
+                setEditingRoutine(null);
+                setDialogOpen(true);
+              }}
               className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 font-semibold"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -135,213 +341,38 @@ const Routines = () => {
           </div>
         </div>
 
-        <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Seleziona le routine da esportare</DialogTitle>
-            </DialogHeader>
-            <div className="max-h-72 overflow-y-auto space-y-2">
-              {routinesSorted.map(routine => (
-                <div key={routine.id} className={`flex items-center gap-2 p-2 rounded ${routine.assigned_days?.length ? 'bg-green-50' : 'bg-gray-100 opacity-60'}`}>
-                  <Checkbox
-                    checked={selectedIds.includes(routine.id)}
-                    onCheckedChange={() => handleCheckbox(routine.id)}
-                    disabled={!routine.assigned_days?.length}
-                  />
-                  <span className="font-semibold text-gray-900 dark:text-white">{routine.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">{routine.assigned_days?.length ? routine.assigned_days.join(', ') : 'Non assegnata'}</span>
-                </div>
-              ))}
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={handleExport}
-                disabled={selectedIds.length === 0}
-                className="bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold"
-              >
-                Esporta selezionate
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
         {routines.length === 0 ? (
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-            <CardContent className="text-center py-12">
-              <Target className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nessuna routine creata</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">Inizia creando la tua prima routine di allenamento</p>
-              <Button 
-                onClick={() => navigate("/routines/create")}
-                className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Crea la tua prima routine
-              </Button>
-            </CardContent>
-          </Card>
+          null
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {routines.map((routine) => (
-              <Card 
-                key={routine.id} 
-                className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group overflow-hidden"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1" onClick={() => navigate(`/routines/${routine.id}`)}>
-                      <CardTitle className="text-gray-900 dark:text-white font-outfit mb-2 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-200">
-                        {routine.name}
-                      </CardTitle>
-                      <Badge variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                        {routine.type}
-                      </Badge>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/routines/create?edit=${routine.id}`);
-                        }}
-                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(routine.id, routine.name);
-                        }}
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="flex flex-col h-full justify-between px-5 pb-4 pt-2">
-                  {/* Box volume dedicato */}
-                  <div className="rounded-lg bg-gray-50 dark:bg-gray-900/30 p-4 mb-2 flex flex-col gap-1 border border-gray-200 dark:border-gray-700">
-                    {getRoutineVolume(routine).totalKg > 0 && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-gray-300">Volume (kg)</span>
-                        <span className="text-gray-900 dark:text-white font-semibold">{getRoutineVolume(routine).totalKg} kg</span>
-                      </div>
-                    )}
-                    {getRoutineVolume(routine).totalSets > 0 && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-gray-300">Serie totali</span>
-                        <span className="text-gray-900 dark:text-white font-semibold">{getRoutineVolume(routine).totalSets}</span>
-                      </div>
-                    )}
-                    {getRoutineVolume(routine).totalDuration > 0 && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-gray-300">Durata totale</span>
-                        <span className="text-gray-900 dark:text-white font-semibold">{getRoutineVolume(routine).totalDuration} s</span>
-                      </div>
-                    )}
-                    {getRoutineVolume(routine).totalDistance > 0 && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-gray-300">Distanza totale</span>
-                        <span className="text-gray-900 dark:text-white font-semibold">{getRoutineVolume(routine).totalDistance} m</span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Exercise Preview */}
-                  {routine.routine_exercises?.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">Esercizi:</div>
-                      <div className="space-y-1">
-                        {routine.routine_exercises.slice(0, 3).map((routineExercise: any) => (
-                          <div key={routineExercise.id} className="flex items-center space-x-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-1 py-1 transition-colors cursor-pointer">
-                            <MuscleIcon 
-                              muscleGroup={routineExercise.exercise.muscle_group} 
-                              className="w-4 h-4"
-                            />
-                            <span className="text-gray-700 dark:text-gray-300 truncate">
-                              {routineExercise.exercise.name}
-                            </span>
-                            <span className="text-gray-500 dark:text-gray-400">
-                              {routineExercise.sets}×{routineExercise.reps || routineExercise.duration}
-                            </span>
-                          </div>
-                        ))}
-                        {routine.routine_exercises.length > 3 && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            +{routine.routine_exercises.length - 3} altri esercizi
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {routine.assigned_days?.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">Giorni assegnati:</div>
-                      <div className="flex flex-wrap gap-2">
-                        {routine.assigned_days.slice(0, 3).map((day: string) => (
-                          <Badge key={day} variant="secondary" className="text-sm px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-                            {day.slice(0, 3)}
-                          </Badge>
-                        ))}
-                        {routine.assigned_days.length > 3 && (
-                          <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                            +{routine.assigned_days.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 justify-end bg-white dark:bg-gray-800">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/routines/${routine.id}`)}
-                      className="text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-semibold px-4 py-2 rounded-lg"
-                    >
-                      Dettaglio
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => startWorkout(routine)}
-                      disabled={!routine.routine_exercises?.length}
-                      className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 font-semibold shadow-md transition-colors px-4 py-2 rounded-lg"
-                    >
-                      Inizia
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {routines.map((routine: any) => (
+              <RoutineCard
+                key={routine.id}
+                routine={routine}
+                onEdit={() => { setEditingRoutine(routine); setDialogOpen(true); }}
+                onDelete={() => setRoutineToDelete(routine)}
+                onDetails={() => navigate(`/routines/${routine.id}`)}
+                onStart={() => {/* implementa start */}}
+              />
             ))}
           </div>
         )}
 
         {/* Dialog di conferma eliminazione routine */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Conferma eliminazione</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              Sei sicuro di voler eliminare la routine <span className="font-semibold">{routineToDelete?.name}</span>?<br />
-              Questa azione non può essere annullata.
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                Annulla
-              </Button>
-              <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete}>
-                Elimina
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {routineToDelete && (
+          <Dialog open={!!routineToDelete} onOpenChange={open => { if (!open) setRoutineToDelete(null); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Elimina routine</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">Sei sicuro di voler eliminare la routine <b>{routineToDelete.name}</b>? Questa azione non è reversibile.</div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setRoutineToDelete(null)}>Annulla</Button>
+                <Button variant="destructive" onClick={handleDeleteRoutine}>Elimina</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );

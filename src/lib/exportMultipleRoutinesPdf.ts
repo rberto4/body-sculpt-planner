@@ -1,147 +1,96 @@
-// Utility per esportare più routine in un unico PDF
+
+// Funzione per caricare il logo come base64
+async function getLogoBase64(): Promise<string> {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#22c55e"/><text x="50" y="55" text-anchor="middle" fill="white" font-family="Arial" font-size="20" font-weight="bold">F</text></svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 export async function exportMultipleRoutinesPdf(routines: any[], user?: any) {
-  const { default: jsPDF } = await import("jspdf");
-  // Espone jsPDF come globale per i font
-  // @ts-ignore
-  window.jsPDF = jsPDF;
-  const autoTable = (await import("jspdf-autotable")).default;
+  try {
+    const { jsPDF } = await import("jspdf");
+    await import("jspdf-autotable");
 
-  // Funzione per caricare il logo come base64
-  async function getLogoBase64(): Promise<string> {
-    const response = await fetch("/placeholder.svg");
-    const svg = await response.text();
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
-  }
+    const doc = new jsPDF({ format: "a4", unit: "pt" });
 
-  // Import dinamico dei font Outfit
-  await import("@/lib/fonts/Outfit-Regular-normal.js");
-  await import("@/lib/fonts/Outfit-Bold-normal.js");
-
-  const doc: any = new jsPDF({ format: "a4", unit: "pt" });
-  const logo = await getLogoBase64();
-
-  let y = 40;
-  // Header PDF: Logo testuale
-  doc.setFont("Outfit-Bold");
-  doc.setFontSize(28);
-  doc.text("Bodyweight", 40, y + 30);
-  doc.setFont("Outfit-Regular");
-  doc.setFontSize(18);
-  doc.text("Routine di Allenamento", 40, y + 55);
-  y += 80;
-
-  // Sezione utente
-  if (user) {
-    doc.setFont("Outfit-Regular");
-    doc.setFontSize(13);
-    doc.text(`Utente: ${user.name || user.email || "-"}`, 40, y);
-    y += 20;
-  }
-  // Divisore
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(1);
-  doc.line(40, y, 555, y);
-  y += 20;
-
-  for (let i = 0; i < routines.length; i++) {
-    const routine = routines[i];
-    if (i > 0) {
-      doc.addPage();
-      y = 40;
-      doc.setFont("Outfit-Bold");
-      doc.setFontSize(28);
-      doc.text("Bodyweight", 40, y + 30);
-      doc.setFont("Outfit-Regular");
-      doc.setFontSize(18);
-      doc.text("Routine di Allenamento", 40, y + 55);
-      y += 80;
-      if (user) {
-        doc.setFont("Outfit-Regular");
-        doc.setFontSize(13);
-        doc.text(`Utente: ${user.name || user.email || "-"}`, 40, y);
-        y += 20;
-      }
-      doc.setDrawColor(200, 200, 200);
-      doc.setLineWidth(1);
-      doc.line(40, y, 555, y);
-      y += 20;
+    // Header generale
+    const logo = await getLogoBase64();
+    doc.addImage(logo, "SVG", 40, 40, 60, 60);
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.text("Routine di Allenamento", 120, 65);
+    doc.setFontSize(14);
+    if (user?.full_name) {
+      doc.text(`Coach: ${user.full_name}`, 120, 85);
     }
-    // Titolo routine
-    doc.setFont("Outfit-Bold");
-    doc.setFontSize(16);
-    doc.text(`Routine: ${routine.name || "-"}`, 40, y);
-    y += 22;
-    doc.setFont("Outfit-Regular");
-    doc.setFontSize(12);
-    doc.text(`Tipo: ${routine.type || "-"}`, 40, y);
-    y += 18;
-    doc.text(`Giorni assegnati: ${(routine.assigned_days || []).join(", ")}`, 40, y);
-    y += 18;
-    doc.text(`Volume: ${routine.calculated_volume || 0}kg`, 40, y);
-    y += 25;
-    // Divisore tra routine e giorni
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.5);
-    doc.line(40, y, 555, y);
-    y += 15;
+    doc.text(`Data: ${new Date().toLocaleDateString("it-IT")}`, 40, 130);
+    doc.text(`Numero routine: ${routines.length}`, 40, 150);
 
-    // Raggruppa esercizi per giorno
-    const days = [
-      "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"
-    ];
-    const exercisesByDay: Record<string, any[]> = {};
-    (routine.assigned_days || []).forEach((day: string) => {
-      exercisesByDay[day] = (routine.routine_exercises || []).filter((ex: any) =>
-        !ex.assigned_day || ex.assigned_day === day
-      );
+    let yPosition = 190;
+
+    routines.forEach((routine, routineIndex) => {
+      if (routineIndex > 0) {
+        doc.addPage();
+        yPosition = 40;
+      }
+
+      // Titolo routine
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${routineIndex + 1}. ${routine.name}`, 40, yPosition);
+      yPosition += 30;
+
+      // Info routine
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Tipo: ${routine.type || "Non specificato"}`, 40, yPosition);
+      yPosition += 20;
+      doc.text(`Volume: ${routine.volume || "Non specificato"}`, 40, yPosition);
+      yPosition += 20;
+      doc.text(`Giorni: ${routine.assigned_days?.join(", ") || "Non specificato"}`, 40, yPosition);
+      yPosition += 30;
+
+      // Esercizi
+      if (routine.routine_exercises && routine.routine_exercises.length > 0) {
+        const exerciseData = routine.routine_exercises.map((re: any, index: number) => {
+          const exercise = re.exercise;
+          return [
+            index + 1,
+            exercise?.name || "Esercizio sconosciuto",
+            exercise?.muscle_group || "-",
+            re.sets || "-",
+            re.reps || "-",
+            re.weight ? `${re.weight} ${re.weight_unit || "kg"}` : "-",
+            re.rest_time ? `${re.rest_time}s` : "-"
+          ];
+        });
+
+        (doc as any).autoTable({
+          head: [["#", "Esercizio", "Gruppo", "Serie", "Rip", "Peso", "Pausa"]],
+          body: exerciseData,
+          startY: yPosition,
+          styles: {
+            fontSize: 9,
+            cellPadding: 4,
+          },
+          headStyles: {
+            fillColor: [34, 197, 94],
+            textColor: 255,
+            fontStyle: "bold",
+          },
+          alternateRowStyles: {
+            fillColor: [245, 245, 245],
+          },
+          margin: { left: 40, right: 40 },
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 40;
+      }
     });
 
-    for (const day of days) {
-      if (!exercisesByDay[day] || exercisesByDay[day].length === 0) continue;
-      doc.setFont("Outfit-Bold");
-      doc.setFontSize(14);
-      doc.text(day, 40, y);
-      y += 10;
-      autoTable(doc, {
-        startY: y,
-        head: [[
-          "Esercizio", "Set", "Ripetizioni/Durata", "Carico", "Note"
-        ]],
-        body: exercisesByDay[day].map((ex: any) => [
-          ex.exercise?.name || "-",
-          ex.sets || "-",
-          ex.tracking_type === "sets_reps"
-            ? `${ex.reps || "-"}`
-            : ex.tracking_type === "duration"
-              ? `${ex.duration || "-"} ${ex.duration_unit || "s"}`
-              : ex.tracking_type === "distance_duration"
-                ? `${ex.duration || "-"} ${ex.duration_unit || "s"}, ${ex.distance || "-"} ${ex.distance_unit || "m"}`
-                : "-",
-          ex.weight ? `${ex.weight}${ex.weight_unit || "kg"}` : "-",
-          ex.notes || ""
-        ]),
-        theme: "grid",
-        styles: {
-          font: "Outfit-Regular",
-          fontSize: 10,
-          cellPadding: 4,
-          textColor: [30, 30, 30],
-        },
-        headStyles: {
-          fillColor: [30, 41, 59], // bg-gray-900
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          font: "Outfit-Bold",
-        },
-        alternateRowStyles: {
-          fillColor: [243, 244, 246], // bg-gray-100
-        },
-        margin: { left: 40, right: 40 },
-      });
-      y = (doc.lastAutoTable?.finalY || y) + 30;
-    }
-    y += 20;
+    doc.save(`routine_multiple_${new Date().getTime()}.pdf`);
+  } catch (error) {
+    console.error("Errore durante l'export PDF multiplo:", error);
+    throw new Error("Impossibile generare il PDF");
   }
-
-  doc.save(`routines_export.pdf`);
 }

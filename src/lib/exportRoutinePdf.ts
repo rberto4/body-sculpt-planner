@@ -1,3 +1,4 @@
+
 // Funzione per caricare il logo come base64
 async function getLogoBase64(): Promise<string> {
   const response = await fetch("/placeholder.svg");
@@ -5,12 +6,19 @@ async function getLogoBase64(): Promise<string> {
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
+// Interfaccia per estendere jsPDF con autoTable
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable: {
+    finalY: number;
+  };
+}
+
 // Funzione principale di export
 export async function exportRoutinePdf(routine: any, user?: any) {
   const { default: jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
-  const doc = new jsPDF({ format: "a4", unit: "pt" });
+  const doc = new jsPDF({ format: "a4", unit: "pt" }) as jsPDFWithAutoTable;
 
   // Carica logo
   const logo = await getLogoBase64();

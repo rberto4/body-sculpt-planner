@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Mail, Calendar, MessageCircle, Trash2, Copy } from "lucide-react";
+import { Plus, Users, Mail, Calendar, MessageCircle, Trash2, Copy, Edit } from "lucide-react";
 import { useCoachClients, useCoachInviteCodes, useCreateInviteCode, useRemoveClient } from "@/hooks/useCoachClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";

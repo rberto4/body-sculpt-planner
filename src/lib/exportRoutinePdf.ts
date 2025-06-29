@@ -8,9 +8,10 @@ async function getLogoBase64(): Promise<string> {
 // Funzione principale di export
 export async function exportRoutinePdf(routine: any, user?: any) {
   try {
-    const { jsPDF } = await import("jspdf");
+    const jsPDFModule = await import("jspdf");
     await import("jspdf-autotable");
 
+    const jsPDF = jsPDFModule.default;
     const doc = new jsPDF({ format: "a4", unit: "pt" });
 
     // Carica logo

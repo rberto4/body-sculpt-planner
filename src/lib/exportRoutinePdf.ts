@@ -1,4 +1,6 @@
 
+import { jsPDF } from 'jspdf';
+
 // Funzione per caricare il logo come base64
 async function getLogoBase64(): Promise<string> {
   const response = await fetch("/placeholder.svg");
@@ -6,19 +8,12 @@ async function getLogoBase64(): Promise<string> {
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
-// Interfaccia per estendere jsPDF con autoTable
-interface jsPDFWithAutoTable extends jsPDF {
-  lastAutoTable: {
-    finalY: number;
-  };
-}
-
 // Funzione principale di export
 export async function exportRoutinePdf(routine: any, user?: any) {
-  const { default: jsPDF } = await import("jspdf");
+  const { jsPDF: jsPDFClass } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
-  const doc = new jsPDF({ format: "a4", unit: "pt" }) as jsPDFWithAutoTable;
+  const doc = new jsPDFClass({ format: "a4", unit: "pt" });
 
   // Carica logo
   const logo = await getLogoBase64();
@@ -91,7 +86,7 @@ export async function exportRoutinePdf(routine: any, user?: any) {
       },
       margin: { left: 40, right: 40 },
     });
-    y = doc.lastAutoTable.finalY + 30;
+    y = (doc as any).lastAutoTable.finalY + 30;
   }
 
   doc.save(`routine_${routine.name || "allenamento"}.pdf`);

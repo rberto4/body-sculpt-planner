@@ -38,6 +38,7 @@ export default function RoutineDetail() {
         name: data.name,
         type: data.type,
         assigned_days: data.assigned_days,
+        is_assigned: data.is_assigned,
       });
       // Gestione esercizi
       const oldExercises = routine.routine_exercises || [];
@@ -156,7 +157,7 @@ export default function RoutineDetail() {
           </Button>
           <h1 className="text-3xl font-bold flex-1 truncate">{routine.name}</h1>
           <div className="flex gap-2">
-            <Button size="icon" variant="ghost" title="Inizia" onClick={() => {/* implementa start */}}><Play className="w-5 h-5" /></Button>
+            <Button size="icon" variant="ghost" title="Inizia" onClick={() => navigate('/training', { state: { routine } })}><Play className="w-5 h-5" /></Button>
             <Button size="icon" variant="ghost" title="Modifica" onClick={() => setEditing(true)}><Pencil className="w-5 h-5" /></Button>
             <Button size="icon" variant="ghost" title="Elimina" onClick={() => setDeleteDialog(true)}><Trash className="w-5 h-5 text-red-500" /></Button>
           </div>

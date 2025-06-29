@@ -118,6 +118,7 @@ const Routines = () => {
           name: data.name,
           type: data.type,
           assigned_days: data.assigned_days,
+          is_assigned: data.is_assigned,
         });
         // Gestione esercizi
         const oldExercises = editingRoutine.routine_exercises || [];
@@ -172,6 +173,7 @@ const Routines = () => {
           name: data.name,
           type: data.type,
           assigned_days: data.assigned_days,
+          is_assigned: data.is_assigned,
         });
         for (let i = 0; i < data.routine_exercises.length; i++) {
           const ex = data.routine_exercises[i];

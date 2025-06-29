@@ -88,11 +88,12 @@ const CreateRoutine = () => {
   };
 
   const handleSubmit = async () => {
+    const isAssigned = selectedDays.length > 0;
     const routineData = {
       name: routineName,
       type: selectedType || customType,
       assigned_days: selectedDays,
-      is_assigned: selectedDays.length > 0,
+      is_assigned: isAssigned,
       calculated_volume: calculateVolume(exercises)
     };
 

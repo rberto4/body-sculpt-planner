@@ -101,3 +101,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .pb-mobile-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    .pb-mobile-nav {
+      padding-bottom: 0;
+    }
+  }
+}

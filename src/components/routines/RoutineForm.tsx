@@ -47,10 +47,12 @@ export default function RoutineForm({
   };
   const handleSave = () => {
     if (!name.trim() || exercises.length === 0) return;
+    const isAssigned = assignedDays.length > 0;
     onSave({
       name,
       type,
       assigned_days: assignedDays,
+      is_assigned: isAssigned,
       routine_exercises: exercises
     });
   };

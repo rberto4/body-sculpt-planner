@@ -4,16 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, User, Mail, Lock, Dumbbell } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, Dumbbell, UserCheck, Users } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<'coach' | 'client'>('client');
+  const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -30,7 +33,7 @@ const Auth = () => {
       if (isLogin) {
         result = await signIn(email, password);
       } else {
-        result = await signUp(email, password, fullName);
+        result = await signUp(email, password, fullName, role, inviteCode);
       }
 
       if (result.error) {
@@ -86,23 +89,66 @@ const Auth = () => {
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-gray-700 dark:text-gray-300">
-                    Nome completo
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Il tuo nome completo"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-gray-900 dark:focus:border-white"
-                      required={!isLogin}
-                    />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-gray-700 dark:text-gray-300">
+                      Nome completo
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                      <Input
+                        id="fullName"
+                        type="text"
+                        placeholder="Il tuo nome completo"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-gray-900 dark:focus:border-white"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-gray-700 dark:text-gray-300">Tipo di account</Label>
+                    <RadioGroup value={role} onValueChange={(value: 'coach' | 'client') => setRole(value)} className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <RadioGroupItem value="coach" id="coach" />
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          <Label htmlFor="coach" className="text-gray-700 dark:text-gray-300 cursor-pointer">
+                            Coach - Gestisci clienti e crea routine
+                          </Label>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <RadioGroupItem value="client" id="client" />
+                        <div className="flex items-center space-x-2">
+                          <UserCheck className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          <Label htmlFor="client" className="text-gray-700 dark:text-gray-300 cursor-pointer">
+                            Cliente - Allenati con le routine assegnate
+                          </Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {role === 'client' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="inviteCode" className="text-gray-700 dark:text-gray-300">
+                        Codice di invito del Coach
+                      </Label>
+                      <Input
+                        id="inviteCode"
+                        type="text"
+                        placeholder="Inserisci il codice ricevuto dal tuo coach"
+                        value={inviteCode}
+                        onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                        className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-gray-900 dark:focus:border-white"
+                        required
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="space-y-2">

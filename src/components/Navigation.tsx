@@ -1,21 +1,35 @@
+
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Calendar, Timer, Edit, Heart, Home, TrendingUp, Menu, User, LogOut } from "lucide-react";
+import { Calendar, Timer, Edit, Heart, Home, TrendingUp, Menu, User, LogOut, Users, MessageCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
 
-  const navItems = [
-    { icon: Home, label: "Home", path: "/" },
+  const isCoach = profile?.role === 'coach';
+  
+  // Navigazione per Coach
+  const coachNavItems = [
+    { icon: Home, label: "Dashboard", path: "/" },
+    { icon: Users, label: "Clienti", path: "/clients" },
     { icon: Edit, label: "Routine", path: "/routines" },
+    { icon: Heart, label: "Esercizi", path: "/exercises" },
+  ];
+
+  // Navigazione per Cliente
+  const clientNavItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Edit, label: "Le mie Routine", path: "/routines" },
     { icon: Heart, label: "Esercizi", path: "/exercises" },
     { icon: Calendar, label: "Calendario", path: "/calendar" },
     { icon: TrendingUp, label: "Progressi", path: "/progress" },
   ];
+
+  const navItems = isCoach ? coachNavItems : clientNavItems;
 
   const handleLogout = async () => {
     await signOut();
@@ -34,6 +48,7 @@ export const Navigation = () => {
               style={{ fontFamily: 'Outfit, sans-serif' }}
             >
               Bodyweight
+              {isCoach && <span className="text-sm font-normal text-gray-500 ml-2">Coach</span>}
             </div>
 
             {/* Desktop Navigation - Pulsanti a destra */}
@@ -100,6 +115,7 @@ export const Navigation = () => {
           </div>
         </div>
       </nav>
+      
       {/* Bottom Navigation Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="flex justify-between items-center px-2 py-1">

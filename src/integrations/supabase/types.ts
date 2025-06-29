@@ -9,6 +9,142 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          message: string
+          sender_id: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          message: string
+          sender_id: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_clients: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_clients_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_invite_codes: {
+        Row: {
+          client_email: string
+          client_name: string
+          coach_id: string
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_used: boolean | null
+          used_by: string | null
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          coach_id: string
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          used_by?: string | null
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          coach_id?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_invite_codes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_invite_codes_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           created_at: string
@@ -48,25 +184,31 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          coach_code: string | null
           created_at: string
           full_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          coach_code?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          coach_code?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
           username?: string | null
         }
@@ -163,6 +305,7 @@ export type Database = {
         Row: {
           assigned_days: string[] | null
           calculated_volume: number | null
+          client_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -175,6 +318,7 @@ export type Database = {
         Insert: {
           assigned_days?: string[] | null
           calculated_volume?: number | null
+          client_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -187,6 +331,7 @@ export type Database = {
         Update: {
           assigned_days?: string[] | null
           calculated_volume?: number | null
+          client_id?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -196,7 +341,15 @@ export type Database = {
           updated_at?: string
           volume?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routines_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_exercises: {
         Row: {
@@ -320,10 +473,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_coach_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "coach" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +594,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["coach", "client"],
+    },
   },
 } as const

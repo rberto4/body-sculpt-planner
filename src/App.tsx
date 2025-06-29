@@ -17,6 +17,8 @@ import CreateRoutine from "./pages/CreateRoutine";
 import RoutineDetail from "./pages/RoutineDetail";
 import NotFound from "./pages/NotFound";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
+import Clients from "./pages/Clients";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,7 @@ const App = () => (
                     <Navigation />
                     <Routes>
                       <Route path="/" element={<Index />} />
+                      <Route path="/clients" element={<Clients />} />
                       <Route path="/routines" element={<Routines />} />
                       <Route path="/routines/create" element={<CreateRoutine />} />
                       <Route path="/routines/create/:id" element={<CreateRoutine />} />
@@ -45,6 +48,7 @@ const App = () => (
                       <Route path="/training" element={<Training />} />
                       <Route path="/progress" element={<Progress />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/chat/:userId" element={<Chat />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     <FloatingActionButton />

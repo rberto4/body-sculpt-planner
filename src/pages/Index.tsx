@@ -1,111 +1,243 @@
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Timer, Edit, Heart, TrendingUp, Award } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useRoutines, useWorkouts } from "@/hooks/useSupabaseQuery";
+import { useRoutines } from "@/hooks/useSupabaseQuery";
+import { useCoachClients } from "@/hooks/useCoachClient";
+import { Calendar, TrendingUp, Users, Edit, MessageCircle, Play, Dumbbell } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isCoach = profile?.role === 'coach';
+  
   const { data: routines = [] } = useRoutines();
-  const { data: workouts = [] } = useWorkouts();
+  const { data: clients = [] } = useCoachClients();
 
-  const completedWorkouts = workouts.filter(w => w.is_completed).length;
-  const activeRoutines = routines.filter(r => r.is_assigned).length;
-
-  const features = [
-    {
-      title: "Routines",
-      description: "Crea e gestisci le tue routine di allenamento",
-      icon: Edit,
-      path: "/routines",
-      gradient: "from-gray-600 to-gray-800"
-    },
-    {
-      title: "Esercizi",
-      description: "Sfoglia e gestisci il tuo database di esercizi",
-      icon: Heart,
-      path: "/exercises",
-      gradient: "from-gray-700 to-gray-900"
-    },
-    {
-      title: "Calendario",
-      description: "Visualizza e traccia il tuo programma di allenamento",
-      icon: Calendar,
-      path: "/calendar",
-      gradient: "from-gray-600 to-gray-800"
-    },
-    {
-      title: "Allenamento Attivo",
-      description: "Inizia la tua sessione di allenamento",
-      icon: Timer,
-      path: "/training",
-      gradient: "from-gray-700 to-gray-900"
-    }
-  ];
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit flex items-center justify-center">
+        <div className="text-xl text-gray-600 dark:text-gray-300">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-outfit">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-4 font-outfit">
+      <div className="container mx-auto max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-gray-900">
-            Bodyweight
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            Ciao, {profile.full_name || 'Utente'}! 👋
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Il tuo compagno completo per gestire routine, tracciare progressi e raggiungere i tuoi obiettivi di fitness
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            {isCoach 
+              ? `Gestisci i tuoi ${clients.length} clienti e le loro routine di allenamento`
+              : 'Pronto per il prossimo allenamento?'
+            }
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
-            <div className="flex items-center space-x-3 mb-2">
-              <Edit className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">Routine Attive</span>
-            </div>
-            <div className="text-2xl font-bold text-gray-900">{activeRoutines}</div>
-          </div>
-          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
-            <div className="flex items-center space-x-3 mb-2">
-              <TrendingUp className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">Workout Completati</span>
-            </div>
-            <div className="text-2xl font-bold text-gray-900">{completedWorkouts}</div>
-          </div>
-          <div className="bg-gray-100 rounded-xl p-6 border border-gray-200">
-            <div className="flex items-center space-x-3 mb-2">
-              <Award className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">Totale Routine</span>
-            </div>
-            <div className="text-2xl font-bold text-gray-900">{routines.length}</div>
-          </div>
-        </div>
+        {isCoach ? (
+          // Dashboard Coach
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Statistiche Coach */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Clienti Attivi</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{clients.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {clients.length === 0 ? 'Inizia invitando il primo cliente' : 'Clienti sotto la tua guida'}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {features.map((feature, index) => (
-            <Card 
-              key={index} 
-              className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-300 hover:scale-105 cursor-pointer group shadow-sm"
-              onClick={() => navigate(feature.path)}
-            >
-              <CardContent className="p-6">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-600 mb-4">{feature.description}</p>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Routine Create</CardTitle>
+                <Edit className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{routines.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Programmi di allenamento personalizzati
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Messaggi</CardTitle>
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">•</div>
+                <p className="text-xs text-muted-foreground">
+                  Resta in contatto con i tuoi clienti
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Azioni rapide Coach */}
+            <Card className="md:col-span-2 lg:col-span-3">
+              <CardHeader>
+                <CardTitle>Azioni Rapide</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
                 <Button 
-                  variant="outline" 
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                  onClick={() => navigate('/clients')}
+                  className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
                 >
-                  Apri {feature.title}
+                  <Users className="w-4 h-4 mr-2" />
+                  Gestisci Clienti
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/routines')}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Routine
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/exercises')}
+                >
+                  <Dumbbell className="w-4 h-4 mr-2" />
+                  Libreria Esercizi
                 </Button>
               </CardContent>
             </Card>
-          ))}
-        </div>
+
+            {/* Clienti recenti */}
+            {clients.length > 0 && (
+              <Card className="md:col-span-2 lg:col-span-3">
+                <CardHeader>
+                  <CardTitle>Clienti Recenti</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {clients.slice(0, 3).map((client: any) => (
+                      <div key={client.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <span>{client.client.full_name}</span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/routines?client=${client.client.id}`)}
+                          >
+                            Routine
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/chat/${client.client.id}`)}
+                          >
+                            Chat
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : (
+          // Dashboard Cliente
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Le mie routine */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/routines')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Le mie Routine</CardTitle>
+                <Edit className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{routines.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Programmi assegnati dal tuo coach
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Calendario */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/calendar')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Calendario</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">•</div>
+                <p className="text-xs text-muted-foreground">
+                  Pianifica i tuoi allenamenti
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Progressi */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/progress')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Progressi</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">📈</div>
+                <p className="text-xs text-muted-foreground">
+                  Monitora i tuoi miglioramenti
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Routine di oggi */}
+            {routines.filter((r: any) => {
+              const today = new Date().toLocaleDateString('it-IT', { weekday: 'long' });
+              const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
+              return r.assigned_days?.includes(todayCapitalized);
+            }).length > 0 && (
+              <Card className="md:col-span-2 lg:col-span-3">
+                <CardHeader>
+                  <CardTitle>Allenamenti di Oggi</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {routines
+                      .filter((r: any) => {
+                        const today = new Date().toLocaleDateString('it-IT', { weekday: 'long' });
+                        const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
+                        return r.assigned_days?.includes(todayCapitalized);
+                      })
+                      .map((routine: any) => (
+                        <div key={routine.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <h3 className="font-semibold">{routine.name}</h3>
+                            <p className="text-sm text-gray-500">{routine.type}</p>
+                          </div>
+                          <Button 
+                            onClick={() => {
+                              localStorage.setItem('activeWorkout', JSON.stringify(routine));
+                              navigate("/training", { state: { routine } });
+                            }}
+                            className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            Inizia
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
